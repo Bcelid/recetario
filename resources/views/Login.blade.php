@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en">
-  <head>
+
+<head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Recetario</title>
@@ -13,69 +14,79 @@
 
     <!-- AdminLTE (opcional si lo quieres mantener) -->
     <link rel="stylesheet" href="{{ asset('css/adminlte.css') }}" />
-    
+
     <style>
-      body {
-        background-color: #f4f6f9;
-        height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .login-box {
-        width: 100%;
-        max-width: 500px;
-      }
-      .alert {
-        margin-bottom: 20px;
-      }
+        body {
+            background-color: #f4f6f9;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-box {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .alert {
+            margin-bottom: 20px;
+        }
     </style>
-  </head>
+</head>
 
-  <body>
+<body>
     <div class="login-box">
-      <div class="card shadow">
-        <div class="card-header text-center">
-          <img src="{{ asset('img/Logocombinado_sinfondo.png') }}" alt="Recetario Logo" class="img-fluid" style="max-height: 150px;">
-        </div>
-        <div class="card-body">
-          <form action="/portlogistics/login" method="post" class="needs-validation" novalidate>
-            <div class="form-floating mb-3 position-relative">
-              <input type="text" name= "username" class="form-control" placeholder="Usuario" id="username" required>
-              <label for="username">Usuario</label>
-              <div class="position-absolute top-50 end-0 translate-middle-y me-3">
-                <i class="bi bi-person"></i>
-              </div>
-              <div class="invalid-feedback">
-                Por favor ingresa tu usuario.
-              </div>
+        <div class="card shadow">
+            <div class="card-header text-center">
+                <img src="{{ asset('img/Logocombinado_sinfondo.png') }}" alt="Recetario Logo" class="img-fluid"
+                    style="max-height: 150px;">
             </div>
+            <div class="card-body">
+                <form action="{{ route('login') }}" method="POST" class="needs-validation" novalidate>
+                    @csrf
 
-            <div class="form-floating mb-3 position-relative">
-              <input type="password" name="password" class="form-control" id="loginPassword" placeholder="Contraseña" required>
-              <label for="loginPassword">Contraseña</label>
-              <div class="position-absolute top-50 end-0 translate-middle-y me-3">
-                <i class="bi bi-lock-fill"></i>
-              </div>
-              <div class="invalid-feedback">
-                Por favor ingresa tu contraseña.
-              </div>
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <div class="form-floating mb-3 position-relative">
+                        <input type="text" name="username" value="{{ old('username') }}" class="form-control"
+                            placeholder="Usuario" id="username" required>
+                        <label for="username">Usuario</label>
+                        <div class="position-absolute top-50 end-0 translate-middle-y me-3">
+                            <i class="bi bi-person"></i>
+                        </div>
+                        <div class="invalid-feedback">
+                            Por favor ingresa tu usuario.
+                        </div>
+                    </div>
+
+                    <div class="form-floating mb-3 position-relative">
+                        <input type="password" name="password" class="form-control" id="loginPassword"
+                            placeholder="Contraseña" required>
+                        <label for="loginPassword">Contraseña</label>
+                        <div class="position-absolute top-50 end-0 translate-middle-y me-3">
+                            <i class="bi bi-lock-fill"></i>
+                        </div>
+                        <div class="invalid-feedback">
+                            Por favor ingresa tu contraseña.
+                        </div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-portlogistics">Iniciar Sesión</button>
+                    </div>
+                </form>
+
             </div>
-            <!-- Mostrar mensaje de error si existe -->
-              <?php if (isset($_SESSION['login_error'])): ?>
-                <div class="alert alert-danger" role="alert">
-                  <?php echo $_SESSION['login_error']; ?>
-                </div>
-                <?php unset($_SESSION['login_error']); ?> <!-- Limpiar el mensaje de error -->
-              <?php endif; ?>
-             <!-- Fin de mensaje de error si existe -->
-            <div class="d-grid">
-              <button type="submit" class="btn btn-portlogistics">Iniciar Sesion</button>
-            </div>
-          </form>
-          
         </div>
-      </div>
     </div>
 
     <!-- AdminLTE-->
@@ -83,19 +94,20 @@
 
     <!-- Validación de formulario -->
     <script>
-      (() => {
-        'use strict';
-        const forms = document.querySelectorAll('.needs-validation');
-        Array.from(forms).forEach(form => {
-          form.addEventListener('submit', event => {
-            if (!form.checkValidity()) {
-              event.preventDefault();
-              event.stopPropagation();
-            }
-            form.classList.add('was-validated');
-          }, false);
-        });
-      })();
+        (() => {
+            'use strict';
+            const forms = document.querySelectorAll('.needs-validation');
+            Array.from(forms).forEach(form => {
+                form.addEventListener('submit', event => {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        })();
     </script>
-  </body>
+</body>
+
 </html>
