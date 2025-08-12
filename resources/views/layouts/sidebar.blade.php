@@ -31,6 +31,24 @@
                 </li>
               </ul>
             </li>
+            <li class="nav-item menu-open">
+              <a href="#" class="nav-link active text-white">
+                <i class="nav-icon bi bi-gear"></i>
+                <p>
+                  Configuración
+                  <i class="nav-arrow bi bi-chevron-right"></i>
+                </p>
+              </a>
+              <ul class="nav nav-treeview">
+                <li class="nav-item">
+                 <a href="{{ route('technical.categories') }}" class="nav-link text-white ps-4">
+                  <i class="bi bi-collection nav-icon"></i>
+                  <p>Categoria</p>
+                </a>
+
+                </li>
+              </ul>
+            </li>
           </ul>
         </nav>
       </div>
