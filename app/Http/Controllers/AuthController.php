@@ -12,7 +12,7 @@ class AuthController extends Controller
     {
         if (auth()->check()) {
             // Si ya está autenticado, redirige a welcome o dashboard
-            return redirect('/dashboard');
+            return redirect()->route('dashboard');
         }
         return view('login');
     }

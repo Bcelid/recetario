@@ -23,10 +23,11 @@
               </a>
               <ul class="nav nav-treeview">
                 <li class="nav-item">
-                  <a href="#" class="nav-link text-white ps-4">
-                    <i class="bi bi-person nav-icon"></i>
-                    <p>Usuario</p>
-                  </a>
+                 <a href="{{ route('users.index') }}" class="nav-link text-white ps-4">
+                  <i class="bi bi-person nav-icon"></i>
+                  <p>Usuario</p>
+                </a>
+
                 </li>
               </ul>
             </li>
