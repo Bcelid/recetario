@@ -30,6 +30,15 @@
 
                 </li>
               </ul>
+              <ul class="nav nav-treeview">
+                <li class="nav-item">
+                 <a href="{{ route('technical.index') }}" class="nav-link text-white ps-4">
+                  <i class="bi bi-person nav-icon"></i>
+                  <p>Tecnico</p>
+                </a>
+
+                </li>
+              </ul>
             </li>
             <li class="nav-item menu-open">
               <a href="#" class="nav-link active text-white">

@@ -8,7 +8,7 @@ class CreateTecnicoCategoriaTable extends Migration
     public function up()
     {
         Schema::create('tecnico_categoria', function (Blueprint $table) {
-            $table->id('tecnico_categoria_id');
+            $table->increments('tecnico_categoria_id'); // crea INT UNSIGNED AUTO_INCREMENT
             $table->string('tecnico_categoria_nombre');
             $table->boolean('tecnico_categoria_estado')->default(1); // Para softdelete lógico
             $table->timestamps();

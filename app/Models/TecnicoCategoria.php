@@ -25,4 +25,8 @@ class TecnicoCategoria extends Model
     {
         return $query->where('tecnico_categoria_estado', 1);
     }
+     public function tecnicos()
+    {
+        return $this->hasMany(Tecnico::class, 'categoria_id', 'tecnico_categoria_id');
+    }
 }
