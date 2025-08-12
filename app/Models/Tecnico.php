@@ -28,4 +28,9 @@ class Tecnico extends Model
     {
         return $this->belongsTo(TecnicoCategoria::class, 'categoria_id', 'tecnico_categoria_id');
     }
+
+    public function firmas()
+    {
+        return $this->hasMany(TecnicoFirma::class, 'tecnico_id', 'tecnico_id');
+    }
 }

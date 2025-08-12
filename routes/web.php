@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\TecnicoCategoriaController;
 use App\Http\Controllers\TecnicoController;
+use App\Http\Controllers\TecnicoFirmaController;
 use Illuminate\Support\Facades\Route;
 
 // Rutas públicas para login
@@ -42,4 +43,25 @@ Route::middleware('auth')->group(function () {
     Route::put('/tecnico/{id}', [TecnicoController::class, 'update']);
     Route::delete('/tecnico/{id}', [TecnicoController::class, 'destroy']);
     Route::delete('/tecnico/{id}/force', [TecnicoController::class, 'forceDelete']); // opcional
+
+
+
+    Route::get('/technical/signature', [TecnicoFirmaController::class, 'viewIndex'])->name('technical.signature');
+    // Lista de firmas
+    Route::get('/tecnico-firma', [TecnicoFirmaController::class, 'index'])->name('tecnico-firma.index');
+
+    // Formulario crear firma
+    Route::get('/tecnico-firma/create', [TecnicoFirmaController::class, 'create'])->name('tecnico-firma.create');
+
+    // Guardar firma
+    Route::post('/tecnico-firma', [TecnicoFirmaController::class, 'store'])->name('tecnico-firma.store');
+
+    // Formulario editar firma
+    Route::get('/tecnico-firma/{id}', [TecnicoFirmaController::class, 'show'])->name('tecnico-firma.show');
+
+    // Actualizar firma
+    Route::put('/tecnico-firma/{id}', [TecnicoFirmaController::class, 'update'])->name('tecnico-firma.update');
+
+    // Eliminar firma
+    Route::delete('/tecnico-firma/{id}', [TecnicoFirmaController::class, 'destroy'])->name('tecnico-firma.destroy');
 });

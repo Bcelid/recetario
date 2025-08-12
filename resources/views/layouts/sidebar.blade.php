@@ -1,64 +1,58 @@
 <!-- SIDEBAR -->
-    <aside class="app-sidebar custom-sidebar shadow" data-bs-theme="light">
-      <div class="sidebar-brand">
+<aside class="app-sidebar custom-sidebar shadow" data-bs-theme="light">
+    <div class="sidebar-brand">
         <a href="{{ route('dashboard') }}" class="nav-link">
-              <img src="{{ asset('img/Logocombinado_sinfondo.png') }}" alt="Recetario Logo" style="max-height: 55px;">
-            </a>
-      </div>
-      <div class="sidebar-wrapper">
+            <img src="{{ asset('img/Logocombinado_sinfondo.png') }}" alt="Recetario Logo" style="max-height: 55px;">
+        </a>
+    </div>
+
+    <div class="sidebar-wrapper">
         <nav class="mt-2">
-          <ul
-            class="nav sidebar-menu flex-column"
-            data-lte-toggle="treeview"
-            role="menu"
-            data-accordion="false"
-          >
-            <li class="nav-item menu-open">
-              <a href="#" class="nav-link active text-white">
-                <i class="nav-icon bi bi-database"></i>
-                <p>
-                  Base de Datos
-                  <i class="nav-arrow bi bi-chevron-right"></i>
-                </p>
-              </a>
-              <ul class="nav nav-treeview">
-                <li class="nav-item">
-                 <a href="{{ route('users.index') }}" class="nav-link text-white ps-4">
-                  <i class="bi bi-person nav-icon"></i>
-                  <p>Usuario</p>
-                </a>
+            <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
 
-                </li>
-              </ul>
-              <ul class="nav nav-treeview">
+                <!-- Menú Técnico cerrado por defecto -->
                 <li class="nav-item">
-                 <a href="{{ route('technical.index') }}" class="nav-link text-white ps-4">
-                  <i class="bi bi-person nav-icon"></i>
-                  <p>Tecnico</p>
-                </a>
+                    <a href="#" class="nav-link text-white">
+                        <i class="nav-icon bi bi-person"></i>
+                        <p>
+                            Técnico
+                            <i class="nav-arrow bi bi-chevron-right"></i>
+                        </p>
+                    </a>
 
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ route('technical.index') }}" class="nav-link text-white ps-4">
+                                <i class="bi bi-person nav-icon"></i>
+                                <p>Listado</p>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a href="{{ route('technical.categories') }}" class="nav-link text-white ps-4">
+                                <i class="bi bi-collection nav-icon"></i>
+                                <p>Categoría</p>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a href="{{ route('technical.signature') }}" class="nav-link text-white ps-4">
+                                <i class="bi bi-pencil nav-icon"></i>
+                                <p>Firma Electrónica</p>
+                            </a>
+                        </li>
+                    </ul>
                 </li>
-              </ul>
-            </li>
-            <li class="nav-item menu-open">
-              <a href="#" class="nav-link active text-white">
-                <i class="nav-icon bi bi-gear"></i>
-                <p>
-                  Configuración
-                  <i class="nav-arrow bi bi-chevron-right"></i>
-                </p>
-              </a>
-              <ul class="nav nav-treeview">
+
+                <!-- Usuarios (sin submenú) -->
                 <li class="nav-item">
-                 <a href="{{ route('technical.categories') }}" class="nav-link text-white ps-4">
-                  <i class="bi bi-collection nav-icon"></i>
-                  <p>Categoria</p>
-                </a>
-
+                    <a href="{{ route('users.index') }}" class="nav-link text-white">
+                        <i class="bi bi-person nav-icon"></i>
+                        <p>Usuarios</p>
+                    </a>
                 </li>
-              </ul>
-            </li>
-          </ul>
+
+            </ul>
         </nav>
-      </div>
-    </aside>
+    </div>
+</aside>
