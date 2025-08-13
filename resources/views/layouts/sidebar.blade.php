@@ -103,6 +103,32 @@
                     </ul>
                 </li>
 
+                <li class="nav-item">
+                    <a href="#" class="nav-link text-white">
+                        <i class="nav-icon bi bi-egg"></i>
+                        <p>
+                            Animal
+                            <i class="nav-arrow bi bi-chevron-right"></i>
+                        </p>
+                    </a>
+
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ route('animal.specie') }}" class="nav-link text-white ps-4">
+                                <i class="bi bi-feather nav-icon"></i>
+                                <p>Especie</p>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a href="{{ route('animal.subspecie') }}" class="nav-link text-white ps-4">
+                                <i class="bi bi-patch-exclamation nav-icon"></i>
+                                <p>Subespecie</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
                 <!-- Usuarios (sin submenú) -->
                 <li class="nav-item">
                     <a href="{{ route('users.index') }}" class="nav-link text-white">

@@ -10,6 +10,8 @@ use App\Http\Controllers\AlmacenController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\CultivoController;
 use App\Http\Controllers\MalezaController;
+use App\Http\Controllers\EspecieController;
+use App\Http\Controllers\SubespecieController;
 use Illuminate\Support\Facades\Route;
 
 // Rutas públicas para login
@@ -129,4 +131,24 @@ Route::middleware('auth')->group(function () {
         Route::patch('/{id}', [MalezaController::class, 'update'])->name('update');     // Actualizar
         Route::delete('/{id}', [MalezaController::class, 'destroy'])->name('destroy');  // Activar/Inactivar (soft delete)
     });
+
+    // Vista principal del listado de maleza
+    Route::get('animal/specie', [EspecieController::class, 'viewIndex'])->name('animal.specie');
+    // CRUD maleza
+    Route::prefix('especie')->name('especie.')->group(function () {
+        Route::get('/', [EspecieController::class, 'index'])->name('index');             // Listar con filtro
+        Route::post('/', [EspecieController::class, 'store'])->name('store');            // Crear nuevo
+        Route::get('/{id}', [EspecieController::class, 'show'])->name('show');           // Ver detalle
+        Route::patch('/{id}', [EspecieController::class, 'update'])->name('update');     // Actualizar
+        Route::delete('/{id}', [EspecieController::class, 'destroy'])->name('destroy');  // Activar/Inactivar (soft delete)
+         // Listar especies activas
+    });
+
+    Route::get('/subespecie/activos',[SubespecieController::class, 'listActive'])->name('subespecie.listActive');
+    Route::get('animal/subspecie', [SubespecieController::class, 'viewIndex'])->name('animal.subspecie');
+    Route::get('/subespecie', [SubespecieController::class, 'index']);
+    Route::post('/subespecie', [SubespecieController::class, 'store']);
+    Route::get('/subespecie/{id}', [SubespecieController::class, 'show']);
+    Route::put('/subespecie/{id}', [SubespecieController::class, 'update']);
+    Route::delete('/subespecie/{id}', [SubespecieController::class, 'destroy']);
 });
