@@ -77,6 +77,32 @@
                     </ul>
                 </li>
 
+                <li class="nav-item">
+                    <a href="#" class="nav-link text-white">
+                        <i class="nav-icon bi bi-flower2"></i>
+                        <p>
+                            Cultivo
+                            <i class="nav-arrow bi bi-chevron-right"></i>
+                        </p>
+                    </a>
+
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ route('crop.plant') }}" class="nav-link text-white ps-4">
+                                <i class="bi bi-feather nav-icon"></i>
+                                <p>Planta</p>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a href="{{ route('crop.plague') }}" class="nav-link text-white ps-4">
+                                <i class="bi bi-patch-exclamation nav-icon"></i>
+                                <p>Plaga</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
                 <!-- Usuarios (sin submenú) -->
                 <li class="nav-item">
                     <a href="{{ route('users.index') }}" class="nav-link text-white">
