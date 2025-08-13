@@ -9,6 +9,7 @@ use App\Http\Controllers\PropietarioAlmacenController;
 use App\Http\Controllers\AlmacenController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\CultivoController;
+use App\Http\Controllers\MalezaController;
 use Illuminate\Support\Facades\Route;
 
 // Rutas públicas para login
@@ -116,5 +117,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/{id}', [CultivoController::class, 'show'])->name('show');           // Ver detalle
     Route::patch('/{id}', [CultivoController::class, 'update'])->name('update');     // Actualizar
     Route::delete('/{id}', [CultivoController::class, 'destroy'])->name('destroy');  // Activar/Inactivar (soft delete)
+    });
+
+    // Vista principal del listado de maleza
+    Route::get('crop/plague', [MalezaController::class, 'viewIndex'])->name('crop.plague');
+    // CRUD maleza
+    Route::prefix('maleza')->name('maleza.')->group(function () {
+        Route::get('/', [MalezaController::class, 'index'])->name('index');             // Listar con filtro
+        Route::post('/', [MalezaController::class, 'store'])->name('store');            // Crear nuevo
+        Route::get('/{id}', [MalezaController::class, 'show'])->name('show');           // Ver detalle
+        Route::patch('/{id}', [MalezaController::class, 'update'])->name('update');     // Actualizar
+        Route::delete('/{id}', [MalezaController::class, 'destroy'])->name('destroy');  // Activar/Inactivar (soft delete)
     });
 });
