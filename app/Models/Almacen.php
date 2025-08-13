@@ -26,4 +26,9 @@ class Almacen extends Model
     {
         return $this->belongsTo(PropietarioAlmacen::class, 'almacen_propietario_id', 'propietario_almacen_id');
     }
+
+     public function clientes()
+    {
+        return $this->hasMany(Cliente::class, 'cliente_almacen_id', 'almacen_id');
+    }
 }

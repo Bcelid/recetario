@@ -13,7 +13,7 @@
                 <!-- Menú Técnico cerrado por defecto -->
                 <li class="nav-item">
                     <a href="#" class="nav-link text-white">
-                        <i class="nav-icon bi bi-person"></i>
+                        <i class="nav-icon bi bi-person-square"></i>
                         <p>
                             Técnico
                             <i class="nav-arrow bi bi-chevron-right"></i>
@@ -69,9 +69,9 @@
                         </li>
 
                         <li class="nav-item">
-                            <a href="{{ route('technical.signature') }}" class="nav-link text-white ps-4">
-                                <i class="bi bi-pencil nav-icon"></i>
-                                <p>Firma Electrónica</p>
+                            <a href="{{ route('store.client') }}" class="nav-link text-white ps-4">
+                                <i class="bi bi-person-check nav-icon"></i>
+                                <p>Cliente</p>
                             </a>
                         </li>
                     </ul>
@@ -81,7 +81,7 @@
                 <li class="nav-item">
                     <a href="{{ route('users.index') }}" class="nav-link text-white">
                         <i class="bi bi-person nav-icon"></i>
-                        <p>Usuarios</p>
+                        <p>Usuario</p>
                     </a>
                 </li>
 

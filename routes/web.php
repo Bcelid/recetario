@@ -7,6 +7,7 @@ use App\Http\Controllers\TecnicoController;
 use App\Http\Controllers\TecnicoFirmaController;
 use App\Http\Controllers\PropietarioAlmacenController;
 use App\Http\Controllers\AlmacenController;
+use App\Http\Controllers\ClienteController;
 use Illuminate\Support\Facades\Route;
 
 // Rutas públicas para login
@@ -74,7 +75,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/{id}', [PropietarioAlmacenController::class, 'show'])->name('show');      // Ver detalle
         Route::patch('/{id}', [PropietarioAlmacenController::class, 'update'])->name('update');  // Actualizar
         Route::delete('/{id}', [PropietarioAlmacenController::class, 'destroy'])->name('destroy'); // Eliminar / cambiar estado
-        
+
     });
 
 
@@ -88,8 +89,19 @@ Route::middleware('auth')->group(function () {
         Route::get('/{id}', [AlmacenController::class, 'show'])->name('show');       // Ver detalle
         Route::put('/{id}', [AlmacenController::class, 'update'])->name('update');   // Actualizar
         Route::delete('/{id}', [AlmacenController::class, 'destroy'])->name('destroy'); // Eliminar / cambiar estado
-        
+
     });
-    // Ruta para búsqueda de propietarios (para Select2)
-    
+
+    // Vista principal del listado de clientes
+    Route::get('store/client', [ClienteController::class, 'viewIndex'])->name('store.client');
+
+    // CRUD Cliente
+    Route::prefix('cliente')->name('cliente.')->group(function () {
+        Route::get('/', [ClienteController::class, 'index'])->name('index');             // Listar (con filtro)
+        Route::post('/', [ClienteController::class, 'store'])->name('store');            // Crear nuevo
+        Route::get('/{id}', [ClienteController::class, 'show'])->name('show');           // Ver detalle
+        Route::put('/{id}', [ClienteController::class, 'update'])->name('update');       // Actualizar
+        Route::delete('/{id}', [ClienteController::class, 'destroy'])->name('destroy');  // Activar/Inactivar
+        Route::delete('/{id}/force', [ClienteController::class, 'forceDelete'])->name('forceDelete'); // Eliminación total (opcional)
+    });
 });
