@@ -19,4 +19,9 @@ class PropietarioAlmacen extends Model
         'propietario_almacen_direccion',
         'propietario_almacen_estado',
     ];
+
+    public function almacenes()
+    {
+        return $this->hasMany(Almacen::class, 'almacen_propietario_id', 'propietario_almacen_id');
+    }
 }

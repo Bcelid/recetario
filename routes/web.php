@@ -6,6 +6,7 @@ use App\Http\Controllers\TecnicoCategoriaController;
 use App\Http\Controllers\TecnicoController;
 use App\Http\Controllers\TecnicoFirmaController;
 use App\Http\Controllers\PropietarioAlmacenController;
+use App\Http\Controllers\AlmacenController;
 use Illuminate\Support\Facades\Route;
 
 // Rutas públicas para login
@@ -23,8 +24,11 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('users', UserController::class)->except(['show', 'destroy']);
     Route::get('users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
-    Route::patch('users/{user}/changeEstado', [UserController::class, 'changeEstado'])->name('users.changeEstado');
+    Route::post('users/{user}/changeEstado', [UserController::class, 'changeEstado'])->name('users.changeEstado');
     Route::patch('users/{user}/password', [UserController::class, 'updatePassword'])->name('users.updatePassword');
+    Route::get('users/roles/active', [UserController::class, 'getRoles'])->name('users.roles.active');
+    Route::get('users/{user}', [UserController::class, 'show'])->name('users.show');
+
 
     Route::get('/technical/categories', [TecnicoCategoriaController::class, 'viewIndex'])->name('technical.categories');
     Route::prefix('tecnico-categorias')->name('tecnico-categorias.')->group(function () {
@@ -68,8 +72,24 @@ Route::middleware('auth')->group(function () {
         Route::get('/create', [PropietarioAlmacenController::class, 'create'])->name('create'); // Form crear
         Route::post('/', [PropietarioAlmacenController::class, 'store'])->name('store');       // Guardar nuevo
         Route::get('/{id}', [PropietarioAlmacenController::class, 'show'])->name('show');      // Ver detalle
-        Route::put('/{id}', [PropietarioAlmacenController::class, 'update'])->name('update');  // Actualizar
+        Route::patch('/{id}', [PropietarioAlmacenController::class, 'update'])->name('update');  // Actualizar
         Route::delete('/{id}', [PropietarioAlmacenController::class, 'destroy'])->name('destroy'); // Eliminar / cambiar estado
+        
     });
 
+
+    Route::get('/store', [AlmacenController::class, 'viewIndex'])->name('store.index');
+    // Grupo de rutas para CRUD
+    Route::prefix('almacen')->name('almacen.')->group(function () {
+        Route::get('/search', [AlmacenController::class, 'search'])->name('search'); // Select2
+        Route::get('/', [AlmacenController::class, 'index'])->name('index');         // Listar
+        Route::get('/create', [AlmacenController::class, 'create'])->name('create'); // Form crear
+        Route::post('/', [AlmacenController::class, 'store'])->name('store');        // Guardar nuevo
+        Route::get('/{id}', [AlmacenController::class, 'show'])->name('show');       // Ver detalle
+        Route::put('/{id}', [AlmacenController::class, 'update'])->name('update');   // Actualizar
+        Route::delete('/{id}', [AlmacenController::class, 'destroy'])->name('destroy'); // Eliminar / cambiar estado
+        
+    });
+    // Ruta para búsqueda de propietarios (para Select2)
+    
 });

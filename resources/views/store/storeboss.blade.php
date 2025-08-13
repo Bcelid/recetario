@@ -182,7 +182,7 @@ $(document).ready(function() {
 
         $.ajax({
             url: url,
-            method: 'POST',
+            method: method,
             data: formData,
             success: function(res) {
                 propietarioModal.hide();

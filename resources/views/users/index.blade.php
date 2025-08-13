@@ -4,91 +4,36 @@
 
 @section('content')
 
-        <h2>Usuarios</h2>
+    <h2>Usuarios</h2>
 
-        @php
-            $estadoFiltro = request('estado');
-            if ($estadoFiltro === null || $estadoFiltro === '') {
-                $estadoFiltro = '1'; // Por defecto activo
-            }
-        @endphp
-
-        <div class="mb-3 d-flex align-items-center gap-3">
-            <label for="filterEstado" class="form-label mb-0">Estado:</label>
-            <select id="filterEstado" class="form-select" style="width: 150px;">
-                <option value="all" {{ $estado === 'all' ? 'selected' : '' }}>Todos</option>
-                <option value="1" {{ $estado == '1' ? 'selected' : '' }}>Activo</option>
-                <option value="0" {{ $estado == '0' ? 'selected' : '' }}>Inactivo</option>
-            </select>
+    <div class="mb-3 d-flex align-items-center gap-3">
+        <label for="filterEstado" class="form-label mb-0">Estado:</label>
+        <select id="filterEstado" class="form-select" style="width: 150px;">
+            <option value="all" {{ $estado === 'all' ? 'selected' : '' }}>Todos</option>
+            <option value="1" {{ $estado == '1' ? 'selected' : '' }}>Activo</option>
+            <option value="0" {{ $estado == '0' ? 'selected' : '' }}>Inactivo</option>
+        </select>
 
 
-            <button class="btn btn-success ms-auto" id="btnNewUser">Nuevo Usuario</button>
-        </div>
+        <button class="btn btn-success ms-auto" id="btnNewUser">Nuevo Usuario</button>
+    </div>
 
-        <table id="usersTable" class="display table table-striped" style="width:100%">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Apellido</th>
-                    <th>Usuario</th>
-                    <th>Teléfono</th>
-                    <th>Email</th>
-                    <th>Rol</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($users as $user)
-                    <tr data-id="{{ $user->id }}">
-                        <td>{{ $user->id }}</td>
-                        <td>{{ $user->name }}</td>
-                        <td>{{ $user->lastname }}</td>
-                        <td>{{ $user->username }}</td>
-                        <td>{{ $user->phone ?? '-' }}</td>
-                        <td>{{ $user->email }}</td>
-                        <td>{{ $user->role ? $user->role->name : '-' }}</td>
-                        <td>
-                            @if ($user->estado)
-                                <span class="badge bg-success">Activo</span>
-                            @else
-                                <span class="badge bg-secondary">Inactivo</span>
-                            @endif
-                        </td>
-                        <td>
-                            <button class="btn btn-primary btn-sm btn-edit" title="Editar">
-                                <i class="bi bi-pencil-square"></i>
-                            </button>
-
-                            <button class="btn btn-warning btn-sm btn-change-password" title="Cambiar contraseña"
-                                data-id="{{ $user->id }}">
-                                <i class="bi bi-key"></i>
-                            </button>
-
-                            <form method="POST" action="{{ route('users.changeEstado', $user->id) }}"
-                                style="display:inline-block" class="form-change-estado">
-                                @csrf
-                                @method('PATCH')
-                                <input type="hidden" name="estado" value="{{ request('estado') }}">
-                                <button type="submit"
-                                    class="btn btn-sm {{ $user->estado ? 'btn-danger' : 'btn-success' }}"
-                                    onclick="return confirm('¿Está seguro?')"
-                                    title="{{ $user->estado ? 'Desactivar' : 'Restaurar' }}">
-                                    @if ($user->estado)
-                                        <i class="bi bi-person-dash"></i>
-                                    @else
-                                        <i class="bi bi-person-check"></i>
-                                    @endif
-                                </button>
-                            </form>
-                        </td>
-
-
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
+    <table id="usersTable" class="display table table-striped" style="width:100%">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Usuario</th>
+                <th>Teléfono</th>
+                <th>Email</th>
+                <th>Rol</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
 
 
     <!-- Modal Crear/Editar Usuario -->
@@ -132,31 +77,28 @@
 
                             <div class="col-md-6">
                                 <label for="email" class="form-label">Correo electrónico *</label>
-                                <input type="email" class="form-control" id="email" name="email" required>
+                               <input type="email" class="form-control" id="email" name="email" required autocomplete="username">
+
                                 <div class="invalid-feedback"></div>
                             </div>
 
                             <div class="col-md-6">
                                 <label for="role_id" class="form-label">Rol *</label>
                                 <select class="form-select" id="role_id" name="role_id" required>
-                                    <option value="">Seleccione un rol</option>
-                                    @foreach ($roles as $role)
-                                        <option value="{{ $role->id }}">{{ $role->name }}</option>
-                                    @endforeach
+
                                 </select>
                                 <div class="invalid-feedback"></div>
                             </div>
 
                             <div class="col-md-6" id="passwordContainer">
                                 <label for="password" class="form-label">Contraseña *</label>
-                                <input type="password" class="form-control" id="password" name="password">
+                                <input type="password" class="form-control" id="password" name="password" autocomplete="new-password">
                                 <div class="invalid-feedback"></div>
                             </div>
 
                             <div class="col-md-6" id="passwordConfirmContainer">
                                 <label for="password_confirmation" class="form-label">Confirmar contraseña *</label>
-                                <input type="password" class="form-control" id="password_confirmation"
-                                    name="password_confirmation">
+                                <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" autocomplete="new-password">
                                 <div class="invalid-feedback"></div>
                             </div>
 
@@ -187,14 +129,13 @@
 
                         <div class="mb-3">
                             <label for="new_password" class="form-label">Nueva Contraseña *</label>
-                            <input type="password" class="form-control" id="new_password" name="password" required>
+                            <input type="password" class="form-control" id="new_password" name="password" required autocomplete="new-password">
                             <div class="invalid-feedback"></div>
                         </div>
 
                         <div class="mb-3">
                             <label for="new_password_confirmation" class="form-label">Confirmar Nueva Contraseña *</label>
-                            <input type="password" class="form-control" id="new_password_confirmation"
-                                name="password_confirmation" required>
+                            <input type="password" class="form-control" id="new_password_confirmation" name="password_confirmation" required autocomplete="new-password">
                             <div class="invalid-feedback"></div>
                         </div>
 
@@ -216,91 +157,164 @@
 
             let userModal = new bootstrap.Modal(document.getElementById('userModal'));
             let isEdit = false;
-
-            // Inicializar DataTable
-            let table = $('#usersTable').DataTable({
-                "order": [
-                    [0, "asc"]
-                ],
-                // Puedes agregar más opciones si quieres
-            });
-
-            // Filtrar por estado
-            $('#filterEstado').on('change', function() {
-                let estado = $(this).val();
-                // Recargar la página con filtro (también puedes implementar vía AJAX si quieres)
-                let url = new URL(window.location.href);
-                if (estado) {
-                    url.searchParams.set('estado', estado);
-                } else {
-                    url.searchParams.delete('estado');
-                }
-                window.location.href = url.toString();
-            });
-
-            // Abrir modal para nuevo usuario
-            $('#btnNewUser').click(function() {
-                isEdit = false;
-                $('#userModalLabel').text('Nuevo Usuario');
-                $('#userForm')[0].reset();
-                $('#userId').val('');
-                clearValidationErrors();
-                showPasswordFields(true);
-                userModal.show();
-            });
-
-            // Abrir modal para editar usuario
-            $('#usersTable').on('click', '.btn-edit', function() {
-                isEdit = true;
-                clearValidationErrors();
-                let tr = $(this).closest('tr');
-                let userId = tr.data('id');
-                $('#userModalLabel').text('Editar Usuario');
-                $('#userForm')[0].reset();
-                $('#userId').val(userId);
-
-                // Obtener datos del usuario vía AJAX
-                $.get(`/users/${userId}/edit`, function(data) {
-                    $('#name').val(data.name);
-                    $('#lastname').val(data.lastname);
-                    $('#username').val(data.username);
-                    $('#phone').val(data.phone);
-                    $('#email').val(data.email);
-                    $('#role_id').val(data.role_id);
-                    showPasswordFields(false);
-                    userModal.show();
+            loadRoles();
+            function loadRoles() {
+                $.get('/users/roles/active', function(roles) {
+                    $('#role_id').empty().append('<option value="">Seleccione un rol</option>');
+                    roles.forEach(role => {
+                        $('#role_id').append(`<option value="${role.id}">${role.name}</option>`);
+                    });
                 });
-            });
-
-            // Mostrar/Ocultar campos contraseña según modo (crear o editar)
-            function showPasswordFields(show) {
-                if (show) {
-                    $('#passwordContainer').show();
-                    $('#passwordConfirmContainer').show();
-                    $('#password').prop('required', true);
-                    $('#password_confirmation').prop('required', true);
-                } else {
-                    $('#passwordContainer').hide();
-                    $('#passwordConfirmContainer').hide();
-                    $('#password').prop('required', false);
-                    $('#password_confirmation').prop('required', false);
-                }
             }
 
-            // Limpiar errores de validación
-            function clearValidationErrors() {
+            function clearUserValidationErrors() {
                 $('#userForm').find('.is-invalid').removeClass('is-invalid');
                 $('#userForm').find('.invalid-feedback').text('');
             }
 
-            // Enviar formulario (Crear o Actualizar)
+
+
+            // Inicializar DataTable
+            let table = $('#usersTable').DataTable({
+                ajax: {
+                    url: '/users', // Ruta al método index
+                    dataSrc: '',
+                    data: function(d) {
+                        d.estado = $('#filterEstado').val() || 'all';
+                    }
+                },
+                columns: [{
+                        data: 'id'
+                    },
+                    {
+                        data: 'name'
+                    },
+                    {
+                        data: 'lastname'
+                    },
+                    {
+                        data: 'username'
+                    },
+                    {
+                        data: 'phone'
+                    },
+                    {
+                        data: 'email'
+                    },
+                    {
+                        data: 'role.name',
+                        defaultContent: 'Sin rol'
+                    },
+                    {
+                        data: 'estado',
+                        render: estado => estado == 1 ?
+                            '<span class="badge bg-success">Activo</span>' :
+                            '<span class="badge bg-secondary">Inactivo</span>'
+                    },
+                    {
+                        data: null,
+                        orderable: false,
+                        searchable: false,
+                        render: function(user) {
+                            return `
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-sm btn-primary btn-edit" data-id="${user.id}">
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+                            <button class="btn btn-sm btn-warning btn-password" data-id="${user.id}">
+                                <i class="bi bi-key"></i>
+                            </button>
+                            <button class="btn btn-sm ${user.estado == "1" ? 'btn-danger' : 'btn-success'} btn-toggle-estado" data-id="${user.id}">
+                                ${user.estado == "1" ? '<i class="bi bi-person-dash"></i>' : '<i class="bi bi-person-check"></i>'}
+                            </button>
+                        </div>
+                    `;
+                        }
+                    }
+                ]
+            });
+
+            // Filtro de estado (si tienes un select)
+            $('#filterEstado').on('change', function() {
+                table.ajax.reload();
+            });
+
+            // Eventos para los botones
+            $('#usersTable').on('click', '.btn-edit', function() {
+                const userId = $(this).data('id');
+                editUser(userId);
+            });
+
+            $('#usersTable').on('click', '.btn-password', function() {
+                const userId = $(this).data('id');
+                $('#passwordUserId').val(userId);
+                $('#passwordModal').modal('show');
+            });
+
+            $('#usersTable').on('click', '.btn-toggle-estado', function() {
+                const userId = $(this).data('id');
+                toggleEstado(userId);
+            });
+
+            function toggleEstado(userId) {
+                if (!confirm("¿Estás seguro de que deseas cambiar el estado del usuario?")) {
+                    return;
+                }
+
+                $.ajax({
+                    url: `/users/${userId}/changeEstado`,
+                    method: 'POST',
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function() {
+                        $('#usersTable').DataTable().ajax.reload();
+                    },
+                    error: function() {
+                        alert('Ocurrió un error al cambiar el estado del usuario.');
+                    }
+                });
+            }
+
+
+
+            $('#btnNewUser').on('click', function() {
+                isEdit = false;
+
+                $('#userForm')[0].reset();
+                $('#userId').val('');
+                $('#userModalLabel').text('Nuevo Usuario');
+
+                $('#passwordContainer').show();
+                $('#passwordConfirmContainer').show();
+                userModal.show();
+            });
+
+            function editUser(userId) {
+                $.get(`/users/${userId}`, function(user) {
+                    $('#userId').val(user.id);
+                    $('#name').val(user.name);
+                    $('#lastname').val(user.lastname);
+                    $('#username').val(user.username);
+                    $('#phone').val(user.phone);
+                    $('#email').val(user.email);
+                    $('#role_id').val(user.role_id);
+
+                    // Ocultar campos de contraseña
+                    $('#passwordContainer').hide();
+                    $('#passwordConfirmContainer').hide();
+
+                    $('#userModalLabel').text('Editar Usuario');
+                    $('#userModal').modal('show');
+                });
+            }
+
             $('#userForm').submit(function(e) {
                 e.preventDefault();
-                clearValidationErrors();
-
+                clearUserValidationErrors();
                 let userId = $('#userId').val();
-                let url = isEdit ? `/users/${userId}` : '/users';
-                let method = isEdit ? 'PATCH' : 'POST';
+                let method = userId ? 'PATCH' : 'POST';
+                let url = userId ? `/users/${userId}` : '/users';
 
                 let formData = {
                     name: $('#name').val(),
@@ -311,114 +325,38 @@
                     role_id: $('#role_id').val(),
                     password: $('#password').val(),
                     password_confirmation: $('#password_confirmation').val(),
+                    _method: method
                 };
-
-                // Para PATCH Laravel espera _method en datos form
-                if (method === 'PATCH') {
-                    formData._method = 'PATCH';
-                }
 
                 $.ajax({
                     url: url,
                     method: 'POST',
                     data: formData,
-                    success: function(res) {
-                        userModal.hide();
-
-                        let user = res.user;
-                         let estadoActual = $('#filterEstado').val() || '';
-
-                        // Construir la fila como array o HTML según tu tabla
-                        let estadoBadge = user.estado ?
-                            '<span class="badge bg-success">Activo</span>' :
-                            '<span class="badge bg-secondary">Inactivo</span>';
-
-                        // Obtén el token CSRF en tu JS antes, por ejemplo:
-                        const csrfToken = document.querySelector('meta[name="csrf-token"]')
-                            .getAttribute('content');
-
-                        let acciones = `
-    <td>
-        <button class="btn btn-primary btn-sm btn-edit" title="Editar">
-            <i class="bi bi-pencil-square"></i>
-        </button>
-
-        <button class="btn btn-warning btn-sm btn-change-password" title="Cambiar contraseña" data-id="${user.id}">
-            <i class="bi bi-key"></i>
-        </button>
-
-        <form method="POST" action="/users/${user.id}/changeEstado" style="display:inline-block" class="form-change-estado">
-            <input type="hidden" name="_token" value="${csrfToken}">
-            <input type="hidden" name="_method" value="PATCH">
-            <input type="hidden" name="estado" value="${estadoActual}">
-            <button type="submit" class="btn btn-sm ${user.estado ? 'btn-danger' : 'btn-success'}" onclick="return confirm('¿Está seguro?')" title="${user.estado ? 'Desactivar' : 'Restaurar'}">
-                ${user.estado ? '<i class="bi bi-person-dash"></i>' : '<i class="bi bi-person-check"></i>'}
-            </button>
-        </form>
-    </td>
-`;
-
-
-                        // Si estamos editando (isEdit === true)
-                        if (isEdit) {
-                            // Buscar fila en DataTable
-                            let row = table.row($(`tr[data-id="${user.id}"]`));
-                            row.data([
-                                user.id,
-                                user.name,
-                                user.lastname,
-                                user.username,
-                                user.phone || '-',
-                                user.email,
-                                user.role ? user.role.name : '-',
-                                estadoBadge,
-                                acciones
-                            ]).draw(false);
-                        } else {
-                            // Crear nueva fila
-                            let newRow = table.row.add([
-                                user.id,
-                                user.name,
-                                user.lastname,
-                                user.username,
-                                user.phone || '-',
-                                user.email,
-                                user.role ? user.role.name : '-',
-                                estadoBadge,
-                                acciones
-                            ]).draw(false).node();
-
-                            // Agregar atributo data-id para futuras ediciones
-                            $(newRow).attr('data-id', user.id);
-                        }
+                    success: function(response) {
+                        $('#userModal').modal('hide');
+                        $('#usersTable').DataTable().ajax.reload();
                     },
                     error: function(xhr) {
+                        // Manejador de errores de validación
                         if (xhr.status === 422) {
-                            // Validación
                             let errors = xhr.responseJSON.errors;
                             for (let field in errors) {
-                                let input = $(`[name=${field}]`);
+                                let input = $(`[name="${field}"]`);
                                 input.addClass('is-invalid');
                                 input.next('.invalid-feedback').text(errors[field][0]);
                             }
                         } else {
-                            alert('Error en el servidor');
+                            alert('Error en el servidor al guardar el usuario');
                         }
                     }
                 });
             });
 
+
+
             let passwordModal = new bootstrap.Modal(document.getElementById('passwordModal'));
 
-            // Abrir modal cambiar contraseña
-            $('#usersTable').on('click', '.btn-change-password', function() {
-                clearPasswordValidationErrors();
-                let userId = $(this).data('id');
-                $('#passwordUserId').val(userId);
-                $('#new_password').val('');
-                $('#new_password_confirmation').val('');
-                passwordModal.show();
-            });
+
 
             // Limpiar errores de validación del password modal
             function clearPasswordValidationErrors() {

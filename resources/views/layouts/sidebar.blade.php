@@ -62,9 +62,9 @@
                         </li>
 
                         <li class="nav-item">
-                            <a href="{{ route('technical.categories') }}" class="nav-link text-white ps-4">
-                                <i class="bi bi-collection nav-icon"></i>
-                                <p>Categoría</p>
+                            <a href="{{ route('store.index') }}" class="nav-link text-white ps-4">
+                                <i class="bi bi-shop nav-icon"></i>
+                                <p>Almacen</p>
                             </a>
                         </li>
 
