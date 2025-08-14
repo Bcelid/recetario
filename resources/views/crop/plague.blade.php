@@ -107,11 +107,11 @@ $(document).ready(function() {
                 searchable: false,
                 render: function(data, type, row) {
                     const btnEdit = `<button class="btn btn-primary btn-sm btn-edit" title="Editar" data-id="${row.maleza_id}">
-                        <i class="bi bi-pencil-square"></i>
+                        <i class="fa-solid fa-pen-to-square"></i>
                     </button>`;
 
                     const btnToggleEstado = `<button class="btn btn-sm ${row.maleza_estado ? 'btn-danger' : 'btn-success'} btn-toggle-estado" title="${row.maleza_estado ? 'Desactivar' : 'Activar'}" data-id="${row.maleza_id}">
-                        ${row.maleza_estado ? '<i class="bi bi-x-circle"></i>' : '<i class="bi bi-check-circle"></i>'}
+                        ${row.maleza_estado ? '<i class="fa-solid fa-xmark-circle"></i>' : '<i class="fa-solid fa-check-circle"></i>'}
                     </button>`;
 
                     return `<div class="d-flex gap-1">${btnEdit}${btnToggleEstado}</div>`;

@@ -166,10 +166,10 @@
                             return `
                         <div class="d-flex gap-1">
                             <button class="btn btn-sm btn-primary btn-edit" data-id="${data.tecnico_id}">
-                                <i class="bi bi-pencil-square"></i>
+                                <i class="fa-solid fa-pen-to-square"></i>
                             </button>
                             <button class="btn btn-sm ${data.tecnico_estado == 1 ? 'btn-danger' : 'btn-success'} btn-toggle-estado" data-id="${data.tecnico_id}">
-                                ${data.tecnico_estado == 1 ? '<i class="bi bi-person-dash"></i>' : '<i class="bi bi-person-check"></i>'}
+                                ${data.tecnico_estado == 1 ? '<i class="fa-solid fa-xmark-circle"></i>' : '<i class="fa-solid fa-check-circle"></i>'}
                             </button>
                         </div>`;
                         }

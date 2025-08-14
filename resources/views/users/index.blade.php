@@ -77,7 +77,8 @@
 
                             <div class="col-md-6">
                                 <label for="email" class="form-label">Correo electrónico *</label>
-                               <input type="email" class="form-control" id="email" name="email" required autocomplete="username">
+                                <input type="email" class="form-control" id="email" name="email" required
+                                    autocomplete="username">
 
                                 <div class="invalid-feedback"></div>
                             </div>
@@ -92,13 +93,15 @@
 
                             <div class="col-md-6" id="passwordContainer">
                                 <label for="password" class="form-label">Contraseña *</label>
-                                <input type="password" class="form-control" id="password" name="password" autocomplete="new-password">
+                                <input type="password" class="form-control" id="password" name="password"
+                                    autocomplete="new-password">
                                 <div class="invalid-feedback"></div>
                             </div>
 
                             <div class="col-md-6" id="passwordConfirmContainer">
                                 <label for="password_confirmation" class="form-label">Confirmar contraseña *</label>
-                                <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" autocomplete="new-password">
+                                <input type="password" class="form-control" id="password_confirmation"
+                                    name="password_confirmation" autocomplete="new-password">
                                 <div class="invalid-feedback"></div>
                             </div>
 
@@ -129,13 +132,15 @@
 
                         <div class="mb-3">
                             <label for="new_password" class="form-label">Nueva Contraseña *</label>
-                            <input type="password" class="form-control" id="new_password" name="password" required autocomplete="new-password">
+                            <input type="password" class="form-control" id="new_password" name="password" required
+                                autocomplete="new-password">
                             <div class="invalid-feedback"></div>
                         </div>
 
                         <div class="mb-3">
                             <label for="new_password_confirmation" class="form-label">Confirmar Nueva Contraseña *</label>
-                            <input type="password" class="form-control" id="new_password_confirmation" name="password_confirmation" required autocomplete="new-password">
+                            <input type="password" class="form-control" id="new_password_confirmation"
+                                name="password_confirmation" required autocomplete="new-password">
                             <div class="invalid-feedback"></div>
                         </div>
 
@@ -158,6 +163,7 @@
             let userModal = new bootstrap.Modal(document.getElementById('userModal'));
             let isEdit = false;
             loadRoles();
+
             function loadRoles() {
                 $.get('/users/roles/active', function(roles) {
                     $('#role_id').empty().append('<option value="">Seleccione un rol</option>');
@@ -217,20 +223,23 @@
                         searchable: false,
                         render: function(user) {
                             return `
-                        <div class="d-flex gap-1">
-                            <button class="btn btn-sm btn-primary btn-edit" data-id="${user.id}">
-                                <i class="bi bi-pencil-square"></i>
-                            </button>
-                            <button class="btn btn-sm btn-warning btn-password" data-id="${user.id}">
-                                <i class="bi bi-key"></i>
-                            </button>
-                            <button class="btn btn-sm ${user.estado == "1" ? 'btn-danger' : 'btn-success'} btn-toggle-estado" data-id="${user.id}">
-                                ${user.estado == "1" ? '<i class="bi bi-person-dash"></i>' : '<i class="bi bi-person-check"></i>'}
-                            </button>
-                        </div>
-                    `;
+            <div class="d-flex gap-1">
+                <button class="btn btn-sm btn-primary btn-edit" data-id="${user.id}">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+                <button class="btn btn-sm btn-warning btn-password" data-id="${user.id}">
+                    <i class="fa-solid fa-key"></i>
+                </button>
+                <button class="btn btn-sm ${user.estado == "1" ? 'btn-danger' : 'btn-success'} btn-toggle-estado" data-id="${user.id}">
+                    ${user.estado == "1" 
+                        ? '<i class="fa-solid fa-user-minus"></i>' 
+                        : '<i class="fa-solid fa-user-check"></i>'}
+                </button>
+            </div>
+        `;
                         }
                     }
+
                 ]
             });
 
