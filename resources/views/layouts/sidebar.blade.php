@@ -133,7 +133,7 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ route('animal.specie') }}" class="nav-link text-white ps-4">
+                            <a href="{{ route('product.activeingredient') }}" class="nav-link text-white ps-4">
                                 <i class="fa-solid fa-flask nav-icon"></i>
                                 <p>Ingrediente Activo</p>
                             </a>

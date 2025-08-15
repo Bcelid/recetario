@@ -12,6 +12,7 @@ use App\Http\Controllers\CultivoController;
 use App\Http\Controllers\MalezaController;
 use App\Http\Controllers\EspecieController;
 use App\Http\Controllers\SubespecieController;
+use App\Http\Controllers\IngredienteActivoController;
 use Illuminate\Support\Facades\Route;
 
 // Rutas públicas para login
@@ -114,11 +115,11 @@ Route::middleware('auth')->group(function () {
 
     // CRUD Cultivo
     Route::prefix('cultivos')->name('cultivo.')->group(function () {
-    Route::get('/', [CultivoController::class, 'index'])->name('index');             // Listar con filtro
-    Route::post('/', [CultivoController::class, 'store'])->name('store');            // Crear nuevo
-    Route::get('/{id}', [CultivoController::class, 'show'])->name('show');           // Ver detalle
-    Route::patch('/{id}', [CultivoController::class, 'update'])->name('update');     // Actualizar
-    Route::delete('/{id}', [CultivoController::class, 'destroy'])->name('destroy');  // Activar/Inactivar (soft delete)
+        Route::get('/', [CultivoController::class, 'index'])->name('index');             // Listar con filtro
+        Route::post('/', [CultivoController::class, 'store'])->name('store');            // Crear nuevo
+        Route::get('/{id}', [CultivoController::class, 'show'])->name('show');           // Ver detalle
+        Route::patch('/{id}', [CultivoController::class, 'update'])->name('update');     // Actualizar
+        Route::delete('/{id}', [CultivoController::class, 'destroy'])->name('destroy');  // Activar/Inactivar (soft delete)
     });
 
     // Vista principal del listado de maleza
@@ -141,14 +142,26 @@ Route::middleware('auth')->group(function () {
         Route::get('/{id}', [EspecieController::class, 'show'])->name('show');           // Ver detalle
         Route::patch('/{id}', [EspecieController::class, 'update'])->name('update');     // Actualizar
         Route::delete('/{id}', [EspecieController::class, 'destroy'])->name('destroy');  // Activar/Inactivar (soft delete)
-         // Listar especies activas
+        // Listar especies activas
     });
 
-    Route::get('/subespecie/activos',[SubespecieController::class, 'listActive'])->name('subespecie.listActive');
+    Route::get('/subespecie/activos', [SubespecieController::class, 'listActive'])->name('subespecie.listActive');
     Route::get('animal/subspecie', [SubespecieController::class, 'viewIndex'])->name('animal.subspecie');
     Route::get('/subespecie', [SubespecieController::class, 'index']);
     Route::post('/subespecie', [SubespecieController::class, 'store']);
     Route::get('/subespecie/{id}', [SubespecieController::class, 'show']);
     Route::put('/subespecie/{id}', [SubespecieController::class, 'update']);
     Route::delete('/subespecie/{id}', [SubespecieController::class, 'destroy']);
+
+    Route::get('/product/activeingredient', [IngredienteActivoController::class, 'viewIndex'])
+        ->name('product.activeingredient'); // Vista Blade: product/activeingredient.blade.php
+
+    // CRUD de Ingredientes Activos
+    Route::prefix('ingredientes-activos')->name('ingredientes-activos.')->group(function () {
+        Route::get('/', [IngredienteActivoController::class, 'index'])->name('list');         // Listar con filtro
+        Route::post('/', [IngredienteActivoController::class, 'store'])->name('store');        // Crear nuevo
+        Route::get('/{id}', [IngredienteActivoController::class, 'show'])->name('show');       // Ver detalle
+        Route::patch('/{id}', [IngredienteActivoController::class, 'update'])->name('update'); // Actualizar
+        Route::delete('/{id}', [IngredienteActivoController::class, 'destroy'])->name('destroy'); // Activar/Inactivar
+    });
 });
