@@ -13,6 +13,7 @@ use App\Http\Controllers\MalezaController;
 use App\Http\Controllers\EspecieController;
 use App\Http\Controllers\SubespecieController;
 use App\Http\Controllers\IngredienteActivoController;
+use App\Http\Controllers\UnidadMedidaController;
 use Illuminate\Support\Facades\Route;
 
 // Rutas públicas para login
@@ -153,8 +154,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/subespecie/{id}', [SubespecieController::class, 'update']);
     Route::delete('/subespecie/{id}', [SubespecieController::class, 'destroy']);
 
-    Route::get('/product/activeingredient', [IngredienteActivoController::class, 'viewIndex'])
-        ->name('product.activeingredient'); // Vista Blade: product/activeingredient.blade.php
+    Route::get('/product/activeingredient', [IngredienteActivoController::class, 'viewIndex'])->name('product.activeingredient'); // Vista Blade: product/activeingredient.blade.php
 
     // CRUD de Ingredientes Activos
     Route::prefix('ingredientes-activos')->name('ingredientes-activos.')->group(function () {
@@ -163,5 +163,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/{id}', [IngredienteActivoController::class, 'show'])->name('show');       // Ver detalle
         Route::patch('/{id}', [IngredienteActivoController::class, 'update'])->name('update'); // Actualizar
         Route::delete('/{id}', [IngredienteActivoController::class, 'destroy'])->name('destroy'); // Activar/Inactivar
+    });
+
+    Route::get('/settings/measure', [UnidadMedidaController::class, 'viewIndex'])->name('settings.measure'); // Vista Blade: product/activeingredient.blade.php
+
+    // CRUD de Ingredientes Activos
+    Route::prefix('unidad-medida')->name('unidad-medida.')->group(function () {
+        Route::get('/', [UnidadMedidaController::class, 'index'])->name('list');         // Listar con filtro
+        Route::post('/', [UnidadMedidaController::class, 'store'])->name('store');        // Crear nuevo
+        Route::get('/{id}', [UnidadMedidaController::class, 'show'])->name('show');       // Ver detalle
+        Route::patch('/{id}', [UnidadMedidaController::class, 'update'])->name('update'); // Actualizar
+        Route::delete('/{id}', [UnidadMedidaController::class, 'destroy'])->name('destroy'); // Activar/Inactivar
     });
 });

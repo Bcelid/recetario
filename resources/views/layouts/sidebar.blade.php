@@ -146,6 +146,30 @@
                         </li>
                     </ul>
                 </li>
+                <!-- Configuracion -->
+                <li class="nav-item">
+                    <a href="#" class="nav-link text-white">
+                        <i class="nav-icon fa-solid fa-sliders"></i>
+                        <p>
+                            Configuracion
+                            <i class="nav-arrow fa-solid fa-chevron-right"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ route('settings.measure') }}" class="nav-link text-white ps-4">
+                                <i class="fa-solid fa-ruler nav-icon"></i>
+                                <p>Medida</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('animal.subspecie') }}" class="nav-link text-white ps-4">
+                               <i class="fa-solid fa-scale-balanced nav-icon"></i>
+                                <p>Medida Dosificación</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
 
                 <!-- Usuario -->
                 <li class="nav-item">
