@@ -168,6 +168,12 @@
                                 <p>Medida Dosificación</p>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="{{ route('settings.formulation') }}" class="nav-link text-white ps-4">
+                               <i class="fa-solid fa-soap nav-icon"></i>
+                                <p>Formulacion</p>
+                            </a>
+                        </li>
                     </ul>
                 </li>
 

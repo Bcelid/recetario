@@ -12,7 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('formulacion', function (Blueprint $table) {
-            $table->id();
+            $table->id('formulacion_id');
+            $table->string('formulacion_nombre', 255);
+            $table->string('formulacion_abreviatura', 100)->nullable();
+            $table->boolean('formulacion_estado')->default(1);
             $table->timestamps();
         });
     }

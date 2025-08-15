@@ -15,6 +15,7 @@ use App\Http\Controllers\SubespecieController;
 use App\Http\Controllers\IngredienteActivoController;
 use App\Http\Controllers\UnidadMedidaController;
 use App\Http\Controllers\UnidadMedidaDosificacionController;
+use App\Http\Controllers\FormulacionController;
 use Illuminate\Support\Facades\Route;
 
 // Rutas públicas para login
@@ -185,5 +186,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/{id}', [UnidadMedidaDosificacionController::class, 'show'])->name('show');       // Ver detalle
         Route::patch('/{id}', [UnidadMedidaDosificacionController::class, 'update'])->name('update'); // Actualizar
         Route::delete('/{id}', [UnidadMedidaDosificacionController::class, 'destroy'])->name('destroy'); // Activar/Inactivar
+    });
+
+    Route::get('/settings/formulation', [FormulacionController::class, 'viewIndex'])->name('settings.formulation'); // Vista Blade: product/activeingredient.blade.php
+    // CRUD de Ingredientes Activos
+    Route::prefix('formulacion')->name('formulacion.')->group(function () {
+        Route::get('/', [FormulacionController::class, 'index'])->name('list');         // Listar con filtro
+        Route::post('/', [FormulacionController::class, 'store'])->name('store');        // Crear nuevo
+        Route::get('/{id}', [FormulacionController::class, 'show'])->name('show');       // Ver detalle
+        Route::patch('/{id}', [FormulacionController::class, 'update'])->name('update'); // Actualizar
+        Route::delete('/{id}', [FormulacionController::class, 'destroy'])->name('destroy'); // Activar/Inactivar
     });
 });
