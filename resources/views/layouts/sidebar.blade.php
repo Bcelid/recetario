@@ -163,7 +163,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ route('animal.subspecie') }}" class="nav-link text-white ps-4">
+                            <a href="{{ route('settings.dosageunit') }}" class="nav-link text-white ps-4">
                                <i class="fa-solid fa-scale-balanced nav-icon"></i>
                                 <p>Medida Dosificación</p>
                             </a>
