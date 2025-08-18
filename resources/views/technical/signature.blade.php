@@ -8,14 +8,14 @@
     <div class="mb-3 d-flex align-items-center gap-3">
         <label for="filterEstado" class="form-label mb-0">Estado:</label>
         <select id="filterEstado" class="form-select" style="width: 150px;">
-            <option value="all" selected>Todos</option>
-            <option value="1">Activo</option>
+            <option value="all">Todos</option>
+            <option value="1" selected>Activo</option>
             <option value="0">Inactivo</option>
         </select>
 
         <button class="btn btn-success ms-auto" id="btnNewFirma">Nueva Firma</button>
     </div>
-
+    <div class="table-responsive">
     <table id="firmasTable" class="display table table-striped" style="width:100%">
         <thead>
             <tr>
@@ -31,6 +31,7 @@
         </thead>
         <tbody></tbody>
     </table>
+    </div>
 
     <!-- Modal Crear/Editar Firma -->
     <div class="modal fade" id="firmaModal" tabindex="-1" aria-labelledby="firmaModalLabel" aria-hidden="true">

@@ -17,4 +17,8 @@ class Maleza extends Model
         'maleza_detalle',
     ];
 
+    public function dosificaciones()
+    {
+        return $this->hasMany(Dosificacion::class, 'maleza_id', 'maleza_id');
+    }
 }

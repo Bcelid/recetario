@@ -25,4 +25,9 @@ class Subespecie extends Model
     {
         return $this->belongsTo(Especie::class, 'especie_id', 'especie_id');
     }
+
+    public function dosificaciones()
+    {
+        return $this->hasMany(Dosificacion::class, 'subespecie_id', 'subespecie_id');
+    }
 }

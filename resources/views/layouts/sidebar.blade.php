@@ -139,9 +139,9 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ route('animal.subspecie') }}" class="nav-link text-white ps-4">
+                            <a href="{{ route('product.index') }}" class="nav-link text-white ps-4">
                                 <i class="fa-solid fa-boxes-stacked nav-icon"></i>
-                                <p>Subespecie</p>
+                                <p>Producto</p>
                             </a>
                         </li>
                     </ul>

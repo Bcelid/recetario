@@ -16,4 +16,9 @@ class Cultivo extends Model
         'cultivo_estado',
         'cultivo_detalle',
     ];
+
+    public function dosificaciones()
+    {
+        return $this->hasMany(Dosificacion::class, 'cultivo_id', 'cultivo_id');
+    }
 }

@@ -16,6 +16,7 @@ use App\Http\Controllers\IngredienteActivoController;
 use App\Http\Controllers\UnidadMedidaController;
 use App\Http\Controllers\UnidadMedidaDosificacionController;
 use App\Http\Controllers\FormulacionController;
+use App\Http\Controllers\ProductoController;
 use Illuminate\Support\Facades\Route;
 
 // Rutas públicas para login
@@ -155,6 +156,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/subespecie/{id}', [SubespecieController::class, 'show']);
     Route::put('/subespecie/{id}', [SubespecieController::class, 'update']);
     Route::delete('/subespecie/{id}', [SubespecieController::class, 'destroy']);
+    Route::get('/subespecie/especie/{especie_id}', [SubespecieController::class, 'listByEspecie']); ////obtener las especies por especie_id
+
 
     Route::get('/product/activeingredient', [IngredienteActivoController::class, 'viewIndex'])->name('product.activeingredient'); // Vista Blade: product/activeingredient.blade.php
 
@@ -197,4 +200,16 @@ Route::middleware('auth')->group(function () {
         Route::patch('/{id}', [FormulacionController::class, 'update'])->name('update'); // Actualizar
         Route::delete('/{id}', [FormulacionController::class, 'destroy'])->name('destroy'); // Activar/Inactivar
     });
+
+    Route::get('/product/show/{id}', [ProductoController::class, 'show'])->name('product.show');
+    Route::get('/product/index', [ProductoController::class, 'viewIndex'])->name('product.index'); // Vista Blade: product/activeingredient.blade.php
+    Route::get('/product/product', [ProductoController::class, 'viewCreate'])->name('product.product'); // Vista para crear producto
+    Route::get('/producto', [ProductoController::class, 'index'])->name('list');
+    Route::get('/producto/{id}', [ProductoController::class, 'edit'])->name('producto.edit');
+    Route::put('/producto/{id}', [ProductoController::class, 'update'])->name('producto.update');
+
+
+
+    Route::delete('/producto/{id}', [ProductoController::class, 'destroy'])->name('producto.destroy');
+    Route::post('/producto', [ProductoController::class, 'store'])->name('store');
 });

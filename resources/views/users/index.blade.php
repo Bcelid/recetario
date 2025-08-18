@@ -17,7 +17,7 @@
 
         <button class="btn btn-success ms-auto" id="btnNewUser">Nuevo Usuario</button>
     </div>
-
+    <div class="table-responsive">
     <table id="usersTable" class="display table table-striped" style="width:100%">
         <thead>
             <tr>
@@ -34,7 +34,7 @@
         </thead>
         <tbody></tbody>
     </table>
-
+    </div>
 
     <!-- Modal Crear/Editar Usuario -->
     <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">

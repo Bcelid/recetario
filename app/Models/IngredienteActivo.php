@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class IngredienteActivo extends Model
 {
     use HasFactory;
-    
+
     protected $table = 'ingredienteactivo';
     protected $primaryKey = 'ingrediente_activo_id';
     public $timestamps = true;
@@ -18,4 +18,9 @@ class IngredienteActivo extends Model
         'ingrediente_activo_detalle',
         'ingrediente_activo_estado',
     ];
+
+    public function productosIngredientes()
+    {
+        return $this->hasMany(ProductoIngrediente::class, 'ingrediente_activo_id', 'ingrediente_activo_id');
+    }
 }

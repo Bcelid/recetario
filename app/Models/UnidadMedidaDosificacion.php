@@ -18,4 +18,9 @@ class UnidadMedidaDosificacion extends Model
         'unidad_medida_dosificacion_detalle',
         'unidad_medida_dosificacion_estado',
     ];
+
+    public function dosificaciones()
+    {
+        return $this->hasMany(Dosificacion::class, 'unidad_medida_dosificacion_id', 'unidad_medida_dosificacion_id');
+    }
 }

@@ -114,4 +114,17 @@ class SubespecieController extends Controller
 
         return response()->json($especies);
     }
+
+    /**
+     * Listar subespecies activas filtradas por especie_id.
+     */
+    public function listByEspecie($especie_id)
+    {
+        $subespecies = Subespecie::where('especie_id', $especie_id)
+            ->where('subespecie_estado', 1)
+            ->orderBy('subespecie_nombre')
+            ->get();
+
+        return response()->json($subespecies);
+    }
 }

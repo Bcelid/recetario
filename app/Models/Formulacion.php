@@ -18,4 +18,9 @@ class Formulacion extends Model
         'formulacion_abreviatura',
         'formulacion_estado',
     ];
+
+    public function productos()
+    {
+        return $this->hasMany(Producto::class, 'formulacion_id', 'formulacion_id');
+    }
 }
