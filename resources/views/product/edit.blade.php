@@ -36,10 +36,10 @@
                         value="{{ $producto->producto_concentracion }}" required>
                 </div>
                 <div class="col-md-4">
-                    <label>Presentación *</label>
-                    <input type="text" name="presentacion" class="form-control"
-                        value="{{ $producto->producto_presentacion }}" required>
-                </div>
+    <label class="form-label">Presentación *</label>
+    <input type="text" name="presentacion" class="form-control" required pattern="^\d+(\.\d+)?$" inputmode="decimal" placeholder="Ej: 10.5" value="{{ $producto->producto_presentacion }}">
+    <div class="invalid-feedback">Ingrese un número decimal válido usando punto (.)</div>
+</div>
                 <div class="col-md-4">
                     <label>Unidad de Medida *</label>
                     <select name="unidad_medida_id" class="form-select" id="selectUnidad"></select>
@@ -119,6 +119,7 @@
                     <tbody>
                         @foreach ($producto->dosificaciones as $d)
                             <tr>
+                                <input type="hidden" class="dosificacion-id" value="{{ $d->dosificacion_id }}">
                                 @if ($producto->producto_tipo == 0)
                                     <td><select class="form-select select-cultivo">
                                             <option value="{{ $d->cultivo_id }}" selected>
@@ -351,6 +352,8 @@
                     $('#tablaDosificacion tbody tr').each(function() {
                         const tipo = $('#tipoProducto').val();
                         let item = {
+                            dosificacion_id: $(this).find('.dosificacion-id')
+                        .val(), // 👈 importante
                             aplicacion: $(this).find('.input-aplicacion').val()
                         };
 
@@ -366,6 +369,7 @@
 
                         data.dosificaciones.push(item);
                     });
+
 
 
                     $.ajax({

@@ -176,7 +176,30 @@
                         </li>
                     </ul>
                 </li>
-
+                <!-- Configuracion -->
+                <li class="nav-item">
+                    <a href="#" class="nav-link text-white">
+                        <i class="nav-icon fa-solid fa-rectangle-list"></i>
+                        <p>
+                            Receta
+                            <i class="nav-arrow fa-solid fa-chevron-right"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ route('prescription.newprescription') }}" class="nav-link text-white ps-4">
+                                <i class="fa-solid fa-file-circle-plus nav-icon"></i>
+                                <p>Nueva Receta</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('prescription.list_prescription') }}" class="nav-link text-white ps-4">
+                               <i class="fa-solid fa-file-prescription nav-icon"></i>
+                                <p>Lote de Recetas</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
                 <!-- Usuario -->
                 <li class="nav-item">
                     <a href="{{ route('users.index') }}" class="nav-link text-white">

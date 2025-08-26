@@ -74,7 +74,7 @@
 
                         <div class="mb-3">
                             <label for="tecnico_telefono" class="form-label">Teléfono</label>
-                            <input type="text" class="form-control" name="tecnico_telefono" id="tecnico_telefono">
+                            <input type="number" class="form-control" name="tecnico_telefono" id="tecnico_telefono">
                             <div class="invalid-feedback"></div>
                         </div>
 

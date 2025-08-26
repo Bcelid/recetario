@@ -45,4 +45,9 @@ class Producto extends Model
     {
         return $this->hasMany(Dosificacion::class, 'producto_id', 'producto_id');
     }
+
+    public function recetas()
+    {
+        return $this->hasMany(Receta::class, 'producto_id', 'producto_id');
+    }
 }

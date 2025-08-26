@@ -83,8 +83,11 @@
                 <!-- Presentación -->
                 <div class="col-md-4">
                     <label class="form-label">Presentación *</label>
-                    <input type="text" name="presentacion" class="form-control" required>
+                    <input type="text" name="presentacion" class="form-control" required pattern="^\d+(\.\d+)?$"
+                        inputmode="decimal" placeholder="Ej: 10.5">
+                    <div class="invalid-feedback">Ingrese un número decimal válido usando punto (.)</div>
                 </div>
+
 
                 <!-- Unidad de medida (ajax) -->
                 <div class="col-md-4">
@@ -216,7 +219,10 @@
                     <td>
                         <select class="form-select select-ingrediente" style="width: 100%"></select>
                     </td>
-                    <td><input type="number" class="form-control" placeholder="% Composición" /></td>
+                    <td>
+    <input type="number" class="form-control" placeholder="Composición" step="0.01" />
+</td>
+
                     <td>
                         <select class="form-select select-unidad" style="width: 100%"></select>
                     </td>

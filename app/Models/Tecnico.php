@@ -33,4 +33,9 @@ class Tecnico extends Model
     {
         return $this->hasMany(TecnicoFirma::class, 'tecnico_id', 'tecnico_id');
     }
+
+    public function recetaLotes()
+    {
+        return $this->hasMany(RecetaLote::class, 'tecnico_id', 'tecnico_id');
+    }
 }

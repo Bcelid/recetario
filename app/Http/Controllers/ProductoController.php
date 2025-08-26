@@ -159,17 +159,17 @@ class ProductoController extends Controller
 
             // 1. Actualizar producto
             $producto->update([
-                'producto_nombre'         => $request->nombre_producto,
-                'producto_concentracion'  => $request->concentracion,
-                'producto_presentacion'   => $request->presentacion,
-                'unidad_medida_id'        => $request->unidad_medida_id,
-                'formulacion_id'          => $request->formulacion_id,
-                'producto_diagnostico'    => $request->diagnostico,
+                'producto_nombre'           => $request->nombre_producto,
+                'producto_concentracion'    => $request->concentracion,
+                'producto_presentacion'     => $request->presentacion,
+                'unidad_medida_id'          => $request->unidad_medida_id,
+                'formulacion_id'            => $request->formulacion_id,
+                'producto_diagnostico'      => $request->diagnostico,
                 'producto_unidad_en_envase' => $request->cantidad_envase,
-                'producto_tipo'           => $request->tipo_producto,
+                'producto_tipo'             => $request->tipo_producto,
             ]);
 
-            // 2. Borrar y recrear ingredientes
+            // 2. Ingredientes: igual que antes (se eliminan y vuelven a crear)
             $producto->ingredientes()->delete();
             foreach ($request->ingredientes as $ing) {
                 ProductoIngrediente::create([
@@ -180,25 +180,64 @@ class ProductoController extends Controller
                 ]);
             }
 
-            // 3. Borrar y recrear dosificaciones
-            $producto->dosificaciones()->delete();
+            // 3. Dosificaciones: actualizar o crear según venga id
             foreach ($request->dosificaciones as $dosis) {
-                Dosificacion::create([
-                    'producto_id'                    => $producto->producto_id,
-                    'cultivo_id'                    => $dosis['cultivo_id'] ?? null,
-                    'maleza_id'                     => $dosis['maleza_id'] ?? null,
-                    'subespecie_id'                 => $dosis['subespecie_id'] ?? null,
-                    'dosis'                         => $dosis['dosis'] ?? null,
-                    'unidad_medida_dosificacion_id' => $dosis['unidad_dosificacion_id'] ?? null,
-                    'dosificacion_aplicacion' => $dosis['aplicacion'] ?? null,
-                ]);
+                if (!empty($dosis['dosificacion_id'])) {
+                    // Editar la existente
+                    $dosificacion = Dosificacion::find($dosis['dosificacion_id']);
+                    if ($dosificacion) {
+                        $dosificacion->update([
+                            'cultivo_id'                    => $dosis['cultivo_id'] ?? null,
+                            'maleza_id'                     => $dosis['maleza_id'] ?? null,
+                            'subespecie_id'                 => $dosis['subespecie_id'] ?? null,
+                            'dosis'                         => $dosis['dosis'] ?? null,
+                            'unidad_medida_dosificacion_id' => $dosis['unidad_dosificacion_id'] ?? null,
+                            'dosificacion_aplicacion'       => $dosis['aplicacion'] ?? null,
+                        ]);
+                    }
+                } else {
+                    // Crear nueva
+                    Dosificacion::create([
+                        'producto_id'                    => $producto->producto_id,
+                        'cultivo_id'                    => $dosis['cultivo_id'] ?? null,
+                        'maleza_id'                     => $dosis['maleza_id'] ?? null,
+                        'subespecie_id'                 => $dosis['subespecie_id'] ?? null,
+                        'dosis'                         => $dosis['dosis'] ?? null,
+                        'unidad_medida_dosificacion_id' => $dosis['unidad_dosificacion_id'] ?? null,
+                        'dosificacion_aplicacion'       => $dosis['aplicacion'] ?? null,
+                    ]);
+                }
             }
 
             DB::commit();
             return response()->json(['message' => 'Producto actualizado correctamente'], 200);
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['error' => 'Error al actualizar el producto', 'detalle' => $e->getMessage()], 500);
+            return response()->json([
+                'error'   => 'Error al actualizar el producto',
+                'detalle' => $e->getMessage()
+            ], 500);
         }
+    }
+
+
+    public function getByTipo($tipo)
+    {
+        // 0 = agrícola, 1 = veterinario
+        $productos = Producto::with(['unidadMedida', 'formulacion'])
+            ->where('producto_estado', 1)
+            ->where('producto_tipo', $tipo)
+            ->get()
+            ->map(function ($producto) {
+                return [
+                    'producto_id'   => $producto->producto_id,
+                    'nombre'        => $producto->producto_nombre,
+                    'concentracion' => $producto->producto_concentracion,
+                    'presentacion'  => $producto->producto_presentacion . ' ' . ($producto->unidadMedida->unidad_medida_detalle ?? ''),
+                    'formulacion'   => $producto->formulacion->formulacion_abreviatura ?? '',
+                ];
+            });
+
+        return response()->json($productos);
     }
 }

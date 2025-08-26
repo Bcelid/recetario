@@ -20,6 +20,7 @@ class Almacen extends Model
         'almacen_correo',
         'almacen_estado',
         'almacen_nombre',
+        'almacen_logo',
     ];
 
     public function propietario()
@@ -27,8 +28,13 @@ class Almacen extends Model
         return $this->belongsTo(PropietarioAlmacen::class, 'almacen_propietario_id', 'propietario_almacen_id');
     }
 
-     public function clientes()
+    public function clientes()
     {
         return $this->hasMany(Cliente::class, 'cliente_almacen_id', 'almacen_id');
+    }
+
+    public function recetaLotes()
+    {
+        return $this->hasMany(RecetaLote::class, 'almacen_id', 'almacen_id');
     }
 }

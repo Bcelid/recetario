@@ -25,4 +25,9 @@ class Cliente extends Model
     {
         return $this->belongsTo(Almacen::class, 'cliente_almacen_id', 'almacen_id');
     }
+
+    public function recetas()
+    {
+        return $this->hasMany(Receta::class, 'cliente_id', 'cliente_id');
+    }
 }

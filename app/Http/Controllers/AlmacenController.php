@@ -47,17 +47,32 @@ class AlmacenController extends Controller
             'almacen_telefono'       => 'nullable|string|max:20',
             'almacen_correo'         => 'nullable|email|max:255',
             'almacen_nombre'         => 'required|string|max:255',
+            'almacen_logo'           => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
         $validated['almacen_estado'] = 1;
 
         $almacen = Almacen::create($validated);
 
+        // Guardar logo si existe
+        if ($request->hasFile('almacen_logo')) {
+            $logoPath = $request->file('almacen_logo')->storeAs(
+                'app/logo_almacen',
+                $almacen->almacen_id . '.' . $request->file('almacen_logo')->extension(),
+                'public'
+            );
+
+            $almacen->update([
+                'almacen_logo' => $logoPath
+            ]);
+        }
+
         return response()->json([
             'message' => 'Almacén creado exitosamente.',
             'almacen' => $almacen
         ]);
     }
+
 
     /**
      * Mostrar un almacén específico.
@@ -81,9 +96,23 @@ class AlmacenController extends Controller
             'almacen_telefono'       => 'nullable|string|max:20',
             'almacen_correo'         => 'nullable|email|max:255',
             'almacen_nombre'         => 'required|string|max:255',
+            'almacen_logo'           => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
         $almacen->update($validated);
+
+        // Subir nuevo logo si viene
+        if ($request->hasFile('almacen_logo')) {
+            $logoPath = $request->file('almacen_logo')->storeAs(
+                'app/logo_almacen',
+                $almacen->almacen_id . '.' . $request->file('almacen_logo')->extension(),
+                'public'
+            );
+
+            $almacen->update([
+                'almacen_logo' => $logoPath
+            ]);
+        }
 
         return response()->json([
             'message' => 'Almacén actualizado exitosamente.',
@@ -142,7 +171,4 @@ class AlmacenController extends Controller
 
         return response()->json(['results' => $results]);
     }
-    
-
-    
 }
