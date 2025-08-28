@@ -224,9 +224,23 @@
                 </table>
                 <div class="firma-sello">
                     <div>
-                        <img src="{{ public_path('firma-qr.png') }}" style="width: 100px; height: 60px;"><br>
+                        @if (isset($qrImage))
+                            <img src="data:image/png;base64,{{ $qrImage }}"
+                                style="width: 100px; height: 100px;"><br>
+                        @else
+                            <img src="{{ public_path('firma-qr.png') }}" style="width: 100px; height: 60px;"><br>
+                        @endif
                         <div style="font-size: 12px;">FIRMA</div>
                     </div>
+
+                    @if (isset($qrImage))
+                        <div>
+                            <strong>{{ $recetaLote->tecnico->tecnico_nombre }}
+                                {{ $recetaLote->tecnico->tecnico_apellido }}</strong><br>
+                            {{ $recetaLote->tecnico->categoria->tecnico_categoria_nombre ?? 'Sin categoría' }}<br>
+                            Fecha: {{ \Carbon\Carbon::now()->format('d/m/Y') }}
+                        </div>
+                    @endif
                 </div>
             </div>
 

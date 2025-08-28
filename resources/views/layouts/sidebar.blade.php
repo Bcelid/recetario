@@ -174,6 +174,12 @@
                                 <p>Formulacion</p>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="{{ route('correo.config') }}" class="nav-link text-white ps-4">
+                               <i class="fa-solid fa-envelope nav-icon"></i>
+                                <p>Correo</p>
+                            </a>
+                        </li>
                     </ul>
                 </li>
                 <!-- Configuracion -->

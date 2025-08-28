@@ -9,7 +9,7 @@
     <div class="mb-3 d-flex align-items-center gap-3">
         <label for="filterEstado" class="form-label mb-0">Estado:</label>
         <select id="filterEstado" class="form-select" style="width: 150px;">
-            <option value="all" >Todos</option>
+            <option value="all">Todos</option>
             <option value="1"selected>Activo</option>
             <option value="0">Inactivo</option>
         </select>
@@ -17,24 +17,24 @@
         <button class="btn btn-success ms-auto" id="btnNewEspecie">Nueva Especie</button>
     </div>
     <div class="table-responsive">
-    <table id="especiesTable" class="display table table-striped" style="width:100%">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Nombre Científico</th>
-                <th>Detalle</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            {{-- Se llenará por Ajax --}}
-        </tbody>
-    </table>
+        <table id="especiesTable" class="display table table-striped" style="width:100%">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Nombre Científico</th>
+                    <th>Detalle</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{-- Se llenará por Ajax --}}
+            </tbody>
+        </table>
     </div>
     <!-- Modal Crear/Editar Especie -->
-    <div class="modal fade" id="especieModal" tabindex="-1" aria-labelledby="especieModalLabel" aria-hidden="true">
+    <div class="modal fade" id="especieModal" tabindex="-1" aria-labelledby="especieModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog">
             <form id="especieForm">
                 <div class="modal-content">
@@ -174,6 +174,11 @@
                 e.preventDefault();
                 clearValidationErrors();
 
+                let $btn = $('#btnSaveEspecie');
+                let original = $btn.html();
+                $btn.prop('disabled', true).html(
+                    '<span class="spinner-border spinner-border-sm" role="status"></span> Guardando...');
+
                 let id = $('#especieId').val();
                 let url = isEdit ? `/especie/${id}` : '/especie';
                 let method = isEdit ? 'PATCH' : 'POST';
@@ -193,11 +198,21 @@
                     method: 'POST',
                     data: formData,
                     success: function(res) {
-                        especieModal.hide();
-                        table.ajax.reload(null, false);
-                        alert(res.message);
+                        $btn.removeClass('btn-primary').addClass('btn-success')
+                            .html('<i class="fa fa-check text-white"></i> Guardado');
+
+                        setTimeout(() => {
+                            especieModal.hide();
+                            table.ajax.reload(null, false);
+                            $('#especieForm')[0].reset();
+                            $btn.removeClass('btn-success').addClass('btn-primary')
+                                .html(original)
+                                .prop('disabled', false);
+                        }, 1000);
                     },
                     error: function(xhr) {
+                        $btn.html(original).prop('disabled', false);
+
                         if (xhr.status === 422) {
                             let errors = xhr.responseJSON.errors;
                             for (let field in errors) {
@@ -212,20 +227,29 @@
                 });
             });
 
+
             $('#especiesTable').on('click', '.btn-toggle-estado', function() {
                 if (!confirm('¿Está seguro de cambiar el estado de la especie?')) return;
 
-                let id = $(this).data('id');
+                let $btn = $(this);
+                let id = $btn.data('id');
+                let originalHtml = $btn.html();
+                $btn.prop('disabled', true).html(
+                    '<span class="spinner-border spinner-border-sm" role="status"></span>');
+
 
                 $.ajax({
                     url: `/especie/${id}`,
                     method: 'DELETE',
                     success: function(res) {
-                        alert(res.message);
+                        //alert(res.message);
                         table.ajax.reload(null, false);
                     },
                     error: function() {
                         alert('Error al cambiar estado de la especie');
+                    },
+                    complete: function() {
+                        $btn.prop('disabled', false).html(originalHtml);
                     }
                 });
             });

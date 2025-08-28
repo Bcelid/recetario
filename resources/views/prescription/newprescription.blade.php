@@ -272,6 +272,7 @@
             $('#cantidadInput, #recetasInput').on('input', validarCamposCantidadRecetas);
             // Generar receta
             $('#btnGenerarReceta').on('click', function() {
+                
                 const tipoReceta = $('#tipoRecetaSelect').val();
                 const tecnico = $('#tecnicoSelect').val();
                 const almacen = $('#almacenSelect').val();
@@ -307,7 +308,7 @@
                     fecha_creacion: fecha,
                     productos: productos
                 };
-
+                $('#loadingModal').modal('show');
                 $.ajax({
                     url: '/prescription', // Ajustá si tu ruta es diferente
                     type: 'POST',
@@ -318,11 +319,13 @@
                             'content') // Necesario si usás middleware CSRF
                     },
                     success: function(response) {
-                        alert(response.message);
+                        //alert(response.message);
+                        $('#loadingModal').modal('hide');
                         window.location.replace(
                             "{{ route('prescription.list_prescription') }}");
                     },
                     error: function(xhr) {
+                        $('#loadingModal').modal('hide');
                         if (xhr.responseJSON && xhr.responseJSON.error) {
                             alert('Error: ' + xhr.responseJSON.error);
                         } else {

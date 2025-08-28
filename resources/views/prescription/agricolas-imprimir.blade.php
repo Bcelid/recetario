@@ -103,7 +103,7 @@
                             ING. AGRÓNOMO - SENESCYT {{ $recetaLote->tecnico->tecnico_senescyt ?? '' }}<br>
                             {{ $recetaLote->tecnico->tecnico_apellido }} {{ $recetaLote->tecnico->tecnico_nombre }} <br>
                             C.I.: {{ $recetaLote->tecnico->tecnido_cedula }}<br>
-                            TELÉFONO: {{ $recetaLote->tecnico->tecnico_telefono }}
+                            TELÉFONO: {{ $recetaLote->tecnico->tecnico_telefono }}<br>
                             <strong>RECETA AGRICOLA PARA EXPENDIO DE PLAGUICIDAS</strong>
                         </td>
                         <td style="width: 30%; text-align: center;">
@@ -225,10 +225,25 @@
                 </table>
                 <div class="firma-sello">
                     <div>
-                        <img src="{{ public_path('firma-qr.png') }}" style="width: 100px; height: 60px;"><br>
+                        @if (isset($qrImage))
+                            <img src="data:image/png;base64,{{ $qrImage }}"
+                                style="width: 120px; height: 120px;"><br>
+                        @else
+                            <img src="{{ public_path('firma-qr.png') }}" style="width: 100px; height: 60px;"><br>
+                        @endif
                         <div style="font-size: 12px;">FIRMA</div>
                     </div>
+
+                    @if (isset($qrImage))
+                        <div>
+                            <strong>{{ $recetaLote->tecnico->tecnico_nombre }}
+                                {{ $recetaLote->tecnico->tecnico_apellido }}</strong><br>
+                            {{ $recetaLote->tecnico->categoria->tecnico_categoria_nombre ?? 'Sin categoría' }}<br>
+                            Fecha: {{ \Carbon\Carbon::now()->format('d/m/Y') }}
+                        </div>
+                    @endif
                 </div>
+
             </div>
 
         </div>

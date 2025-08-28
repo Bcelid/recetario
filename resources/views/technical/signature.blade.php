@@ -16,25 +16,25 @@
         <button class="btn btn-success ms-auto" id="btnNewFirma">Nueva Firma</button>
     </div>
     <div class="table-responsive">
-    <table id="firmasTable" class="display table table-striped" style="width:100%">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Técnico</th>
-                <th>Nombre</th>
-                <th>Firma</th>
-                <th>Fecha Emisión</th>
-                <th>Fecha Expiración</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+        <table id="firmasTable" class="display table table-striped" style="width:100%">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Técnico</th>
+                    <th>Nombre</th>
+                    <th>Firma</th>
+                    <th>Fecha Emisión</th>
+                    <th>Fecha Expiración</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
     </div>
 
     <!-- Modal Crear/Editar Firma -->
-    <div class="modal fade" id="firmaModal" tabindex="-1" aria-labelledby="firmaModalLabel" aria-hidden="true">
+    <div class="modal fade" id="firmaModal" tabindex="-1" aria-labelledby="firmaModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog">
             <form id="firmaForm" enctype="multipart/form-data">
                 <div class="modal-content">
@@ -87,12 +87,15 @@
                             <div class="invalid-feedback"></div>
                         </div>
 
-                        
+
 
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                        <button type="submit" class="btn btn-primary">Guardar</button>
+                        <button type="submit" class="btn btn-primary" id="btnGuardarFirma">
+                            Guardar
+                        </button>
+
                     </div>
                 </div>
             </form>
@@ -219,6 +222,12 @@
             $('#firmaForm').submit(function(e) {
                 e.preventDefault();
 
+                let $btn = $('#btnGuardarFirma');
+                let originalContent = $btn.html(); // Guardamos el contenido original
+                $btn.prop('disabled', true).html(
+                    '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Guardando...'
+                    );
+
                 let id = $('#tecnico_firma_id').val();
                 let url = id ? `/tecnico-firma/${id}` : '/tecnico-firma';
                 let formData = new FormData(this);
@@ -226,7 +235,7 @@
                 if (id) {
                     formData.append('_method', 'PUT');
                 }
- 
+
                 $.ajax({
                     url: url,
                     method: 'POST',
@@ -234,11 +243,21 @@
                     contentType: false,
                     processData: false,
                     success: function(res) {
-                        firmaModal.hide();
-                        table.ajax.reload(null, false);
-                        alert(res.message);
+                        $btn.html('<i class="fa fa-check text-white"></i> Guardado');
+
+                        setTimeout(() => {
+                            firmaModal.hide();
+                            table.ajax.reload(null, false);
+                            $btn.html(originalContent).prop('disabled', false);
+                            $('#firmaForm')[0].reset();
+                            $('#firmaForm').find('.is-invalid').removeClass(
+                                'is-invalid');
+                            $('#firmaForm').find('.invalid-feedback').text('');
+                        }, 700); // Esperar un poco para mostrar el "check"
                     },
                     error: function(xhr) {
+                        $btn.html(originalContent).prop('disabled', false);
+
                         if (xhr.status === 422) {
                             let errors = xhr.responseJSON.errors;
                             for (let field in errors) {
@@ -253,21 +272,30 @@
                 });
             });
 
+
             // Cambiar estado
             $('#firmasTable').on('click', '.btn-toggle-estado', function() {
                 if (!confirm('¿Está seguro de cambiar el estado de la firma?')) return;
 
-                let id = $(this).data('id');
+                let $btn = $(this);
+                let id = $btn.data('id');
+                let originalHtml = $btn.html();
+                $btn.prop('disabled', true).html(
+                    '<span class="spinner-border spinner-border-sm" role="status"></span>');
+
 
                 $.ajax({
                     url: `/tecnico-firma/${id}`,
                     method: 'DELETE',
                     success: function(res) {
                         table.ajax.reload(null, false);
-                        alert(res.message);
+                        //alert(res.message);
                     },
                     error: function() {
                         alert('Error al cambiar estado');
+                    },
+                    complete: function() {
+                        $btn.prop('disabled', false).html(originalHtml);
                     }
                 });
             });

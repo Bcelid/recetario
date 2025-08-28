@@ -17,23 +17,23 @@
         <button class="btn btn-success ms-auto" id="btnNewCliente">Nuevo Cliente</button>
     </div>
     <div class="table-responsive">
-    <table id="clientesTable" class="display table table-striped" style="width:100%">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Cédula</th>
-                <th>Nombre</th>
-                <th>Dirección</th>
-                <th>Almacén</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+        <table id="clientesTable" class="display table table-striped" style="width:100%">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Cédula</th>
+                    <th>Nombre</th>
+                    <th>Dirección</th>
+                    <th>Almacén</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
     </div>
     <!-- Modal Crear/Editar Cliente -->
-    <div class="modal fade" id="clienteModal" tabindex="-1" aria-labelledby="clienteModalLabel" aria-hidden="true">
+    <div class="modal fade" id="clienteModal" tabindex="-1" aria-labelledby="clienteModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog">
             <form id="clienteForm">
                 <div class="modal-content">
@@ -59,7 +59,8 @@
 
                         <div class="mb-3">
                             <label for="cliente_apellido" class="form-label">Apellido *</label>
-                            <input type="text" class="form-control" name="cliente_apellido" id="cliente_apellido" required>
+                            <input type="text" class="form-control" name="cliente_apellido" id="cliente_apellido"
+                                required>
                             <div class="invalid-feedback"></div>
                         </div>
 
@@ -80,7 +81,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                        <button type="submit" class="btn btn-primary">Guardar</button>
+                        <button type="submit" class="btn btn-primary" id="btnSaveCliente">Guardar</button>
                     </div>
                 </div>
             </form>
@@ -90,51 +91,58 @@
 @endsection
 
 @section('scripts')
-<script>
-    $(document).ready(function() {
-        let clienteModal = new bootstrap.Modal(document.getElementById('clienteModal'));
-        let isEdit = false;
+    <script>
+        $(document).ready(function() {
+            let clienteModal = new bootstrap.Modal(document.getElementById('clienteModal'));
+            let isEdit = false;
 
-        function loadAlmacenes() {
-            $.get('/almacen?estado=1', function(almacenes) {
-                $('#cliente_almacen_id').empty();
-                almacenes.forEach(a => {
-                    $('#cliente_almacen_id').append(
-                        `<option value="${a.almacen_id}">${a.almacen_nombre}</option>`
-                    );
+            function loadAlmacenes() {
+                $.get('/almacen?estado=1', function(almacenes) {
+                    $('#cliente_almacen_id').empty();
+                    almacenes.forEach(a => {
+                        $('#cliente_almacen_id').append(
+                            `<option value="${a.almacen_id}">${a.almacen_nombre}</option>`
+                        );
+                    });
                 });
-            });
-        }
+            }
 
-        let table = $('#clientesTable').DataTable({
-            ajax: {
-                url: '/cliente',
-                dataSrc: '',
-                data: function(d) {
-                    d.estado = $('#filterEstado').val();
-                }
-            },
-            columns: [
-                { data: 'cliente_id' },
-                { data: 'cliente_cedula' },
-                {
-                    data: null,
-                    render: d => `${d.cliente_nombre} ${d.cliente_apellido}`
+            let table = $('#clientesTable').DataTable({
+                ajax: {
+                    url: '/cliente',
+                    dataSrc: '',
+                    data: function(d) {
+                        d.estado = $('#filterEstado').val();
+                    }
                 },
-                { data: 'cliente_direccion' },
-                { data: 'almacen.almacen_nombre' },
-                {
-                    data: 'cliente_estado',
-                    render: d => d == 1 ?
-                        '<span class="badge bg-success">Activo</span>' :
-                        '<span class="badge bg-secondary">Inactivo</span>'
-                },
-                {
-                    data: null,
-                    orderable: false,
-                    searchable: false,
-                    render: function(data) {
-                        return `
+                columns: [{
+                        data: 'cliente_id'
+                    },
+                    {
+                        data: 'cliente_cedula'
+                    },
+                    {
+                        data: null,
+                        render: d => `${d.cliente_nombre} ${d.cliente_apellido}`
+                    },
+                    {
+                        data: 'cliente_direccion'
+                    },
+                    {
+                        data: 'almacen.almacen_nombre'
+                    },
+                    {
+                        data: 'cliente_estado',
+                        render: d => d == 1 ?
+                            '<span class="badge bg-success">Activo</span>' :
+                            '<span class="badge bg-secondary">Inactivo</span>'
+                    },
+                    {
+                        data: null,
+                        orderable: false,
+                        searchable: false,
+                        render: function(data) {
+                            return `
                         <div class="d-flex gap-1">
                             <button class="btn btn-sm btn-primary btn-edit" data-id="${data.cliente_id}">
                                 <i class="fa-solid fa-pen-to-square"></i>
@@ -143,107 +151,130 @@
                                 ${data.cliente_estado == 1 ? '<i class="fa-solid fa-xmark-circle"></i>' : '<i class="fa-solid fa-check-circle"></i>'}
                             </button>
                         </div>`;
+                        }
                     }
-                }
-            ]
-        });
+                ]
+            });
 
-        $('#filterEstado').on('change', function() {
-            table.ajax.reload();
-        });
+            $('#filterEstado').on('change', function() {
+                table.ajax.reload();
+            });
 
-        $('#btnNewCliente').click(function() {
-            isEdit = false;
-            $('#clienteForm')[0].reset();
-            $('#clienteForm').find('.is-invalid').removeClass('is-invalid');
-            $('#clienteForm').find('.invalid-feedback').text('');
-            $('#clienteId').val('');
-            $('#clienteModalLabel').text('Nuevo Cliente');
-            loadAlmacenes();
-            clienteModal.show();
-        });
-
-        $('#clientesTable').on('click', '.btn-edit', function() {
-            isEdit = true;
-            let id = $(this).data('id');
-            $('#clienteForm').find('.is-invalid').removeClass('is-invalid');
-            $('#clienteForm').find('.invalid-feedback').text('');
-            $('#clienteModalLabel').text('Editar Cliente');
-
-            $.get(`/cliente/${id}`, function(data) {
-                $('#clienteId').val(data.cliente_id);
-                $('#cliente_cedula').val(data.cliente_cedula);
-                $('#cliente_nombre').val(data.cliente_nombre);
-                $('#cliente_apellido').val(data.cliente_apellido);
-                $('#cliente_direccion').val(data.cliente_direccion);
+            $('#btnNewCliente').click(function() {
+                isEdit = false;
+                $('#clienteForm')[0].reset();
+                $('#clienteForm').find('.is-invalid').removeClass('is-invalid');
+                $('#clienteForm').find('.invalid-feedback').text('');
+                $('#clienteId').val('');
+                $('#clienteModalLabel').text('Nuevo Cliente');
                 loadAlmacenes();
-                setTimeout(() => $('#cliente_almacen_id').val(data.cliente_almacen_id), 200);
-
                 clienteModal.show();
             });
-        });
 
-        $('#clienteForm').submit(function(e) {
-            e.preventDefault();
+            $('#clientesTable').on('click', '.btn-edit', function() {
+                isEdit = true;
+                let id = $(this).data('id');
+                $('#clienteForm').find('.is-invalid').removeClass('is-invalid');
+                $('#clienteForm').find('.invalid-feedback').text('');
+                $('#clienteModalLabel').text('Editar Cliente');
 
-            let id = $('#clienteId').val();
-            let url = id ? `/cliente/${id}` : '/cliente';
-            let method = id ? 'PUT' : 'POST';
+                $.get(`/cliente/${id}`, function(data) {
+                    $('#clienteId').val(data.cliente_id);
+                    $('#cliente_cedula').val(data.cliente_cedula);
+                    $('#cliente_nombre').val(data.cliente_nombre);
+                    $('#cliente_apellido').val(data.cliente_apellido);
+                    $('#cliente_direccion').val(data.cliente_direccion);
+                    loadAlmacenes();
+                    setTimeout(() => $('#cliente_almacen_id').val(data.cliente_almacen_id), 200);
 
-            let data = {
-                cliente_cedula: $('#cliente_cedula').val(),
-                cliente_nombre: $('#cliente_nombre').val(),
-                cliente_apellido: $('#cliente_apellido').val(),
-                cliente_direccion: $('#cliente_direccion').val(),
-                cliente_almacen_id: $('#cliente_almacen_id').val(),
-            };
+                    clienteModal.show();
+                });
+            });
 
-            if (id) {
-                data._method = 'PUT';
-            }
+            $('#clienteForm').submit(function(e) {
+                e.preventDefault();
 
-            $.ajax({
-                url: url,
-                method: 'POST',
-                data: data,
-                success: function(res) {
-                    clienteModal.hide();
-                    table.ajax.reload(null, false);
-                    alert(res.message);
-                },
-                error: function(xhr) {
-                    if (xhr.status === 422) {
-                        let errors = xhr.responseJSON.errors;
-                        for (let field in errors) {
-                            let input = $(`[name="${field}"]`);
-                            input.addClass('is-invalid');
-                            input.next('.invalid-feedback').text(errors[field][0]);
+                let $btn = $('#btnSaveCliente');
+                let original = $btn.html();
+                $btn.prop('disabled', true).html(
+                    '<span class="spinner-border spinner-border-sm" role="status"></span> Guardando...');
+
+                let id = $('#clienteId').val();
+                let url = id ? `/cliente/${id}` : '/cliente';
+                let method = id ? 'PUT' : 'POST';
+
+                let data = {
+                    cliente_cedula: $('#cliente_cedula').val(),
+                    cliente_nombre: $('#cliente_nombre').val(),
+                    cliente_apellido: $('#cliente_apellido').val(),
+                    cliente_direccion: $('#cliente_direccion').val(),
+                    cliente_almacen_id: $('#cliente_almacen_id').val(),
+                };
+
+                if (id) {
+                    data._method = 'PUT';
+                }
+
+                $('#clienteForm .is-invalid').removeClass('is-invalid');
+                $('#clienteForm .invalid-feedback').text('');
+
+                $.ajax({
+                    url: url,
+                    method: 'POST',
+                    data: data,
+                    success: function(res) {
+                        $btn.html('<i class="fa fa-check text-white"></i> Guardado');
+                        setTimeout(() => {
+                            clienteModal.hide();
+                            table.ajax.reload(null, false);
+                            $('#clienteForm')[0].reset();
+                            $btn.html(original).prop('disabled', false);
+                        }, 800);
+                    },
+                    error: function(xhr) {
+                        $btn.html(original).prop('disabled', false);
+
+                        if (xhr.status === 422) {
+                            let errors = xhr.responseJSON.errors;
+                            for (let field in errors) {
+                                let input = $(`[name="${field}"]`);
+                                input.addClass('is-invalid');
+                                input.next('.invalid-feedback').text(errors[field][0]);
+                            }
+                        } else {
+                            alert('Error en el servidor');
                         }
-                    } else {
-                        alert('Error en el servidor');
                     }
-                }
+                });
             });
-        });
 
-        $('#clientesTable').on('click', '.btn-toggle-estado', function() {
-            if (!confirm('¿Está seguro de cambiar el estado del cliente?')) return;
 
-            let id = $(this).data('id');
+            $('#clientesTable').on('click', '.btn-toggle-estado', function() {
+                if (!confirm('¿Está seguro de cambiar el estado del cliente?')) return;
 
-            $.ajax({
-                url: `/cliente/${id}`,
-                method: 'DELETE',
-                success: function(res) {
-                    table.ajax.reload(null, false);
-                    alert(res.message);
-                },
-                error: function() {
-                    alert('Error al cambiar estado');
-                }
+                let $btn = $(this);
+                let id = $btn.data('id');
+                let originalHtml = $btn.html();
+                $btn.prop('disabled', true).html(
+                    '<span class="spinner-border spinner-border-sm" role="status"></span>');
+
+
+                $.ajax({
+                    url: `/cliente/${id}`,
+                    method: 'DELETE',
+                    success: function(res) {
+                        table.ajax.reload(null, false);
+                        //alert(res.message);
+                    },
+                    error: function() {
+                        alert('Error al cambiar estado');
+                    },
+                    complete: function() {
+                        $btn.prop('disabled', false).html(originalHtml);
+                    }
+                });
             });
-        });
 
-    });
-</script>
+        });
+    </script>
 @endsection

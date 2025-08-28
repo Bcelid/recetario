@@ -18,26 +18,27 @@
         <button class="btn btn-success ms-auto" id="btnNewUser">Nuevo Usuario</button>
     </div>
     <div class="table-responsive">
-    <table id="usersTable" class="display table table-striped" style="width:100%">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Apellido</th>
-                <th>Usuario</th>
-                <th>Teléfono</th>
-                <th>Email</th>
-                <th>Rol</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+        <table id="usersTable" class="display table table-striped" style="width:100%">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Usuario</th>
+                    <th>Teléfono</th>
+                    <th>Email</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
     </div>
 
     <!-- Modal Crear/Editar Usuario -->
-    <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+    <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true"
+        data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-lg">
             <form id="userForm">
                 <div class="modal-content">
@@ -118,7 +119,7 @@
     </div>
 
     <!-- Modal Cambiar Contraseña -->
-    <div class="modal fade" id="passwordModal" tabindex="-1" aria-labelledby="passwordModalLabel" aria-hidden="true">
+    <div class="modal fade" id="passwordModal" tabindex="-1" aria-labelledby="passwordModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog">
             <form id="passwordForm">
                 <div class="modal-content">
@@ -147,7 +148,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                        <button type="submit" class="btn btn-warning">Actualizar Contraseña</button>
+                        <button type="submit" id="btnpassword" class="btn btn-warning">Actualizar Contraseña</button>
                     </div>
                 </div>
             </form>
@@ -257,6 +258,8 @@
             $('#usersTable').on('click', '.btn-password', function() {
                 const userId = $(this).data('id');
                 $('#passwordUserId').val(userId);
+                $("#new_password").val("");
+                $("#new_password_confirmation").val("");
                 $('#passwordModal').modal('show');
             });
 
@@ -270,6 +273,12 @@
                     return;
                 }
 
+                const $btn = $(`.btn-toggle-estado[data-id="${userId}"]`);
+                const originalHtml = $btn.html();
+
+                $btn.prop('disabled', true).html(
+                    '<span class="spinner-border spinner-border-sm" role="status"></span>');
+
                 $.ajax({
                     url: `/users/${userId}/changeEstado`,
                     method: 'POST',
@@ -277,13 +286,18 @@
                         _token: $('meta[name="csrf-token"]').attr('content')
                     },
                     success: function() {
-                        $('#usersTable').DataTable().ajax.reload();
+                        $('#usersTable').DataTable().ajax.reload(null, false);
                     },
                     error: function() {
                         alert('Ocurrió un error al cambiar el estado del usuario.');
+                        $btn.prop('disabled', false).html(originalHtml);
+                    },
+                    complete: function() {
+                        $btn.prop('disabled', false).html(originalHtml);
                     }
                 });
             }
+
 
 
 
@@ -325,6 +339,11 @@
                 let method = userId ? 'PATCH' : 'POST';
                 let url = userId ? `/users/${userId}` : '/users';
 
+                const $btn = $('#btnSave');
+                const originalHtml = $btn.html();
+                $btn.prop('disabled', true).html(
+                    '<span class="spinner-border spinner-border-sm" role="status"></span> Guardando...');
+
                 let formData = {
                     name: $('#name').val(),
                     lastname: $('#lastname').val(),
@@ -342,11 +361,21 @@
                     method: 'POST',
                     data: formData,
                     success: function(response) {
-                        $('#userModal').modal('hide');
-                        $('#usersTable').DataTable().ajax.reload();
+                        $btn.removeClass('btn-primary').addClass('btn-success')
+                            .html('<i class="fa fa-check text-white"></i> Guardado');
+
+                        setTimeout(() => {
+                            $('#userModal').modal('hide');
+                            $('#usersTable').DataTable().ajax.reload();
+                            $('#userForm')[0].reset();
+                            $btn.removeClass('btn-success').addClass('btn-primary')
+                                .html(originalHtml)
+                                .prop('disabled', false);
+                        }, 1000);
                     },
                     error: function(xhr) {
-                        // Manejador de errores de validación
+                        $btn.prop('disabled', false).html(originalHtml);
+
                         if (xhr.status === 422) {
                             let errors = xhr.responseJSON.errors;
                             for (let field in errors) {
@@ -360,6 +389,7 @@
                     }
                 });
             });
+
 
 
 
@@ -378,6 +408,12 @@
                 e.preventDefault();
                 clearPasswordValidationErrors();
 
+                const $btn = $('#btnpassword');
+                const originalHtml = $btn.html();
+                $btn.prop('disabled', true).html(
+                    '<span class="spinner-border spinner-border-sm" role="status"></span> Guardando...');
+
+
                 let userId = $('#passwordUserId').val();
                 let formData = {
                     password: $('#new_password').val(),
@@ -390,10 +426,20 @@
                     method: 'PATCH',
                     data: formData,
                     success: function(res) {
-                        passwordModal.hide();
-                        alert('Contraseña actualizada correctamente');
+                        $btn.removeClass('btn-primary').addClass('btn-success')
+                            .html('<i class="fa fa-check text-white"></i> Guardado');
+
+                        setTimeout(() => {
+                            passwordModal.hide();
+                            $btn.removeClass('btn-success').addClass('btn-primary')
+                                .html(originalHtml)
+                                .prop('disabled', false);
+                        }, 600);
+                        
+                        //alert('Contraseña actualizada correctamente');
                     },
                     error: function(xhr) {
+                            $btn.prop('disabled', false).html(originalHtml);
                         if (xhr.status === 422) {
                             let errors = xhr.responseJSON.errors;
                             if (errors.password) {

@@ -2,6 +2,10 @@
 
 @section('title', 'Lotes de Recetas')
 
+@section('styles')
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+@endsection
+
 @section('content')
     <h2>Lotes de Recetas</h2>
 
@@ -42,6 +46,13 @@
 @section('scripts')
     <script>
         $(document).ready(function() {
+
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+
 
             // Cargar técnicos y almacenes primero, luego inicializar la tabla
             let tecnicoListo = false;
@@ -142,9 +153,10 @@
         <i class="fa-solid fa-eye"></i>
     </a>
 
-                <button class="btn btn-sm btn-warning" title="Firmar" ${!isActivo || isFirmado ? 'disabled' : ''}>
-                    <i class="fa-solid fa-pen-nib"></i>
-                </button>
+                <button type="button" class="btn btn-sm btn-warning btn-firmar" title="Firmar" data-id="${data.receta_lote_id}" ${!isActivo || isFirmado ? 'disabled' : ''}>
+    <i class="fa-solid fa-pen-nib"></i>
+</button>
+
                 <button class="btn btn-sm btn-primary" title="Enviar" ${!isActivo || !isFirmado ? 'disabled' : ''}>
                     <i class="fa-solid fa-paper-plane"></i>
                 </button>
@@ -167,23 +179,75 @@
 
             // Cambiar estado del lote
             $('#lotesTable').on('click', '.btn-toggle-estado', function() {
-                const id = $(this).data('id');
-
+                
                 if (!confirm('¿Estás seguro de cambiar el estado del lote?')) return;
+
+                let $btn = $(this);
+                let id = $btn.data('id');
+                let originalHtml = $btn.html();
+                $btn.prop('disabled', true).html(
+                    '<span class="spinner-border spinner-border-sm" role="status"></span>');
+
+
+                
 
                 $.ajax({
                     url: `/receta/${id}`,
                     method: 'DELETE',
                     success: function(res) {
-                        alert(res.message);
+                        //alert(res.message);
                         table.ajax.reload(null,
                             false); // Recargar tabla sin reiniciar paginación
                     },
                     error: function() {
                         alert('Error al cambiar el estado del lote.');
+                    },
+                    complete: function() {
+                        $btn.prop('disabled', false).html(originalHtml);
                     }
                 });
             });
+
+            // Firmar lote
+            $('#lotesTable').on('click', '.btn-firmar', function(e) {
+                e.preventDefault();
+
+                const id = $(this).data('id');
+                console.log('[Firmar Lote] Click detectado en lote ID:', id);
+
+                if (!confirm('¿Deseas firmar este lote? Esta acción no se puede deshacer.')) {
+                    console.log('[Firmar Lote] Confirmación cancelada por el usuario.');
+                    return;
+                }
+
+                console.log('[Firmar Lote] Confirmación aceptada, enviando petición AJAX...');
+
+                $.ajax({
+                    url: `/receta/firmar`,
+                    method: 'POST',
+                    data: {
+                        id: id
+                    },
+                    success: function(res) {
+                        console.log('[Firmar Lote] Respuesta exitosa del servidor:', res);
+                        alert(res.message || 'Lote firmado correctamente.');
+                        table.ajax.reload(null, false); // Recargar sin reiniciar paginación
+                    },
+                    error: function(xhr) {
+                        console.error('[Firmar Lote] Error en la petición AJAX:', xhr);
+
+                        let msg = 'Error al firmar el lote.';
+                        if (xhr.responseJSON && xhr.responseJSON.error) {
+                            msg = xhr.responseJSON.error;
+                        }
+
+                        alert(msg);
+                    }
+                });
+            });
+
+
+
 
         });
     </script>

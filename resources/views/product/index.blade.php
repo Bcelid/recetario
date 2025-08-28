@@ -48,17 +48,25 @@
             $('#productosTable').on('click', '.btn-toggle-estado', function() {
                 if (!confirm('¿Está seguro de cambiar el estado del producto?')) return;
 
-                let id = $(this).data('id');
+                
+                let $btn = $(this);
+                let id = $btn.data('id');
+                let originalHtml = $btn.html();
+                $btn.prop('disabled', true).html(
+                    '<span class="spinner-border spinner-border-sm" role="status"></span>');
 
                 $.ajax({
                     url: `/producto/${id}`,
                     method: 'DELETE',
                     success: function(res) {
                         table.ajax.reload(null, false);
-                        alert(res.message);
+                        //alert(res.message);
                     },
                     error: function() {
                         alert('Error al cambiar estado');
+                    },
+                    complete: function() {
+                        $btn.prop('disabled', false).html(originalHtml);
                     }
                 });
             });

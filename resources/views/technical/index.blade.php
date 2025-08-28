@@ -17,25 +17,26 @@
         <button class="btn btn-success ms-auto" id="btnNewTecnico">Nuevo Técnico</button>
     </div>
     <div class="table-responsive">
-    <table id="tecnicosTable" class="display table table-striped" style="width:100%">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Cédula</th>
-                <th>Nombre</th>
-                <th>Email</th>
-                <th>Teléfono</th>
-                <th>Categoría</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+        <table id="tecnicosTable" class="display table table-striped" style="width:100%">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Cédula</th>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Teléfono</th>
+                    <th>Categoría</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
     </div>
 
     <!-- Modal Crear/Editar Técnico -->
-    <div class="modal fade" id="tecnicoModal" tabindex="-1" aria-labelledby="tecnicoModalLabel" aria-hidden="true">
+    <div class="modal fade" id="tecnicoModal" tabindex="-1" aria-labelledby="tecnicoModalLabel" aria-hidden="true" data-bs-backdrop="static"
+        data-bs-keyboard="false">
         <div class="modal-dialog">
             <form id="tecnicoForm">
                 <div class="modal-content">
@@ -95,7 +96,10 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                        <button type="submit" class="btn btn-primary">Guardar</button>
+                        <button type="submit" class="btn btn-primary" id="btnGuardarTecnico">
+                            Guardar
+                        </button>
+
                     </div>
                 </div>
             </form>
@@ -223,6 +227,12 @@
             $('#tecnicoForm').submit(function(e) {
                 e.preventDefault();
 
+                let $btn = $('#btnGuardarTecnico');
+                let originalContent = $btn.html(); // Guardamos el contenido original del botón
+                $btn.prop('disabled', true).html(
+                    '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Guardando...'
+                    );
+
                 let id = $('#tecnicoId').val();
                 let url = id ? `/tecnico/${id}` : '/tecnico';
                 let method = id ? 'PUT' : 'POST';
@@ -246,11 +256,19 @@
                     method: 'POST',
                     data: data,
                     success: function(res) {
-                        tecnicoModal.hide();
-                        table.ajax.reload(null, false);
-                        alert(res.message);
+                        $btn.html('<i class="fa fa-check text-white"></i> Guardado');
+                        setTimeout(() => {
+                            $('#tecnicoModal').modal('hide');
+                            $btn.html(originalContent).prop('disabled', false);
+                            $('#tecnicoForm')[0].reset();
+                            $('#tecnicoForm').find('.is-invalid').removeClass(
+                                'is-invalid');
+                            $('#tecnicoForm').find('.invalid-feedback').text('');
+                            table.ajax.reload(null, false);
+                        }, 700); // Mostrar el ícono de check por 0.7s
                     },
                     error: function(xhr) {
+                        $btn.html(originalContent).prop('disabled', false);
                         if (xhr.status === 422) {
                             let errors = xhr.responseJSON.errors;
                             for (let field in errors) {
@@ -265,21 +283,30 @@
                 });
             });
 
+
             // Cambiar estado (activar/desactivar)
             $('#tecnicosTable').on('click', '.btn-toggle-estado', function() {
                 if (!confirm('¿Está seguro de cambiar el estado del técnico?')) return;
 
-                let id = $(this).data('id');
+                let $btn = $(this);
+                let id = $btn.data('id');
+                let originalHtml = $btn.html();
+                $btn.prop('disabled', true).html(
+                    '<span class="spinner-border spinner-border-sm" role="status"></span>');
+
 
                 $.ajax({
                     url: `/tecnico/${id}`,
                     method: 'DELETE',
                     success: function(res) {
                         table.ajax.reload(null, false);
-                        alert(res.message);
+                        //alert(res.message);
                     },
                     error: function() {
                         alert('Error al cambiar estado');
+                    },
+                    complete: function() {
+                        $btn.prop('disabled', false).html(originalHtml);
                     }
                 });
             });

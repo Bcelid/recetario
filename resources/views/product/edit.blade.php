@@ -164,17 +164,7 @@
 
     </div>
 
-    <div class="modal fade" id="loadingModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static"
-        data-bs-keyboard="false">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content d-flex justify-content-center align-items-center" style="height: 150px;">
-                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-                    <span class="visually-hidden">Cargando...</span>
-                </div>
-                <div class="ms-3">Cargando, por favor espere...</div>
-            </div>
-        </div>
-    </div>
+    
 @endsection
 
 @section('scripts')
@@ -327,6 +317,7 @@
                 });
 
                 $('#formProducto').submit(function(e) {
+                    $('#loadingModal').modal('show');
                     e.preventDefault();
                     const id = $('#producto_id').val();
                     const data = {
@@ -381,7 +372,8 @@
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },
                         success: res => {
-                            alert(res.message);
+                            //alert(res.message);
+                            $('#loadingModal').modal('hide');
                             window.location.href = routeToIndex;
                         },
                         error: err => {

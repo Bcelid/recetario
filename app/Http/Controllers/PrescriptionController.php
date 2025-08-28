@@ -10,6 +10,16 @@ use App\Models\Dosificacion;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Carbon\Carbon;
+use Endroid\QrCode\Builder\Builder;
+use Endroid\QrCode\Writer\PngWriter;
+use Endroid\QrCode\Encoding\Encoding;
+use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevelLow;
+use Endroid\QrCode\Label\Label;
+use Endroid\QrCode\Label\Font\NotoSans;
+
+
 
 class PrescriptionController extends Controller
 {
@@ -282,6 +292,87 @@ class PrescriptionController extends Controller
         return response()->json([
             'message' => $mensaje,
             'lote' => $lote
+        ]);
+    }
+
+    public function firmarLote(Request $request)
+    {
+        $id = $request->input('id');
+        $recetaLote = RecetaLote::with('tecnico.categoria')->findOrFail($id);
+        $tecnico = $recetaLote->tecnico;
+
+
+
+        // Generar contenido del QR
+        $qrContent = "Cédula: {$tecnico->tecnido_cedula}\n"
+            . "Nombre: {$tecnico->tecnico_nombre} {$tecnico->tecnico_apellido}\n"
+            . "Fecha de firma: " . Carbon::now()->format('d/m/Y') . "\n"
+            . "SENESCYT: {$tecnico->tecnico_senescyt}\n"
+            . "Categoría: {$tecnico->categoria->tecnico_categoria_nombre}";
+
+
+        $result = Builder::create()
+            ->writer(new PngWriter())
+            ->data($qrContent)
+            ->encoding(new Encoding('UTF-8'))
+            
+            ->size(200)
+            ->margin(10)
+            ->build();
+
+        $qrImage = base64_encode($result->getString());
+
+
+
+        // Cargar relaciones y vista según tipo de receta
+        if ($recetaLote->receta_tipo == 0) { // Agrícola
+            $recetaLote->load([
+                'almacen.propietario',
+                'tecnico.categoria',
+                'recetas.producto.formulacion',
+                'recetas.producto.ingredientes.ingredienteActivo',
+                'recetas.producto.unidadMedida',
+                'recetas.dosificacion.cultivo',
+                'recetas.dosificacion.maleza',
+                'recetas.dosificacion.subespecie',
+                'recetas.dosificacion.unidadMedidaDosificacion',
+                'recetas.cliente'
+            ]);
+
+            $pdf = Pdf::loadView('prescription.agricolas-imprimir', compact('recetaLote', 'qrImage'))
+                ->setPaper('A4', 'portrait');
+
+            $path = 'recetas/lote_firmado_' . $recetaLote->receta_lote_id . '.pdf';
+        } elseif ($recetaLote->receta_tipo == 1) { // Veterinaria
+            $recetaLote->load([
+                'almacen.propietario',
+                'tecnico.categoria',
+                'recetas.producto.ingredientes.ingredienteActivo',
+                'recetas.dosificacion.subespecie.especie',
+                'recetas.cliente'
+            ]);
+
+            $pdf = Pdf::loadView('prescription.veterinarias-imprimir', compact('recetaLote', 'qrImage'))
+                ->setPaper('A4', 'portrait');
+
+            $path = 'recetas/lote_firmado_veterinario_' . $recetaLote->receta_lote_id . '.pdf';
+        } else {
+            return response()->json(['error' => 'Tipo de receta no válido.'], 400);
+        }
+
+        // Guardar PDF en disco
+        Storage::disk('public')->put($path, $pdf->output());
+
+        // Actualizar lote
+        $recetaLote->update([
+            'receta_lote_path' => $path,
+            'receta_lote_firmado' => 1,
+            //'receta_lote_fecha_firma' => now(), // solo si tienes ese campo
+        ]);
+
+        return response()->json([
+            'message' => 'Lote firmado correctamente.',
+            'pdf_path' => $path
         ]);
     }
 }

@@ -17,6 +17,7 @@ use App\Http\Controllers\UnidadMedidaController;
 use App\Http\Controllers\UnidadMedidaDosificacionController;
 use App\Http\Controllers\FormulacionController;
 use App\Http\Controllers\ProductoController;
+use App\Http\Controllers\UserEmailConfigController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PrescriptionController;
 
@@ -214,13 +215,21 @@ Route::middleware('auth')->group(function () {
 
     Route::delete('/producto/{id}', [ProductoController::class, 'destroy'])->name('producto.destroy');
     Route::post('/producto', [ProductoController::class, 'store'])->name('store');
-
     Route::get('/prescription/newprescription', [PrescriptionController::class, 'viewCreate'])->name('prescription.newprescription'); // Vista para crear producto
     Route::get('/prescription/list_prescription', [PrescriptionController::class, 'viewPrescriptionLote'])->name('prescription.list_prescription'); // Vista para crear producto
     Route::post('/prescription', [PrescriptionController::class, 'store'])->name('prescription.store'); // Guardar nueva prescripción
     Route::get('/receta-agricola/imprimir/{loteId}', [PrescriptionController::class, 'imprimirRecetasAgricolas'])->name('receta.agricola.imprimir');
     Route::get('/recetas/lotes/data', [PrescriptionController::class, 'getLotesData'])->name('receta.lotes.data');
+    Route::post('/receta/firmar', [PrescriptionController::class, 'firmarLote'])->name('receta.firmar');
     Route::delete('/receta/{id}', [PrescriptionController::class, 'destroy'])->name('receta.destroy');
     Route::get('/recetas/{id}/pdf', [PrescriptionController::class, 'exportarPDF']);
+    
 
+
+
+
+    Route::get('/configuracion-correo', [UserEmailConfigController::class, 'edit'])->name('correo.config');
+    Route::post('/configuracion-correo', [UserEmailConfigController::class, 'update'])->name('correo.config.update');
+    Route::post('/correo/config/test', [UserEmailConfigController::class, 'testConnection'])->name('correo.config.test');
+    
 });

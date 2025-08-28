@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.10.1/styles/overlayscrollbars.min.css"
         crossorigin="anonymous" />
-    
+
 
     <link rel="stylesheet" href="{{ asset('css/adminlte.css') }}" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.css"
@@ -38,6 +38,17 @@
         {{-- FOOTER --}}
         @include('layouts.footer')
     </div> <!-- app-wrapper -->
+    <div class="modal fade" id="loadingModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static"
+        data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content d-flex justify-content-center align-items-center" style="height: 150px;">
+                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+                <div class="ms-3">Cargando, por favor espere...</div>
+            </div>
+        </div>
+    </div>
 
     <!-- Scripts comunes (jQuery, Bootstrap, DataTables, AdminLTE, etc) -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>

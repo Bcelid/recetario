@@ -36,7 +36,7 @@
     </div>
 
     <!-- Modal Crear/Editar Almacén -->
-    <div class="modal fade" id="warehouseModal" tabindex="-1" aria-labelledby="warehouseModalLabel">
+    <div class="modal fade" id="warehouseModal" tabindex="-1" aria-labelledby="warehouseModalLabel" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog">
             <form id="warehouseForm" enctype="multipart/form-data">
                 <div class="modal-content">
@@ -100,7 +100,8 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                        <button type="submit" class="btn btn-primary">Guardar</button>
+                        <button type="submit" class="btn btn-primary" id="btnSaveWarehouse">Guardar</button>
+
                     </div>
                 </div>
             </form>
@@ -120,7 +121,9 @@
                 ajax: {
                     url: '/almacen',
                     dataSrc: '',
-                    data: d => d.estado = $('#filterEstado').val()
+                    data: function(d) {
+                        d.estado = $('#filterEstado').val();
+                    }
                 },
                 columns: [{
                         data: 'almacen_id'
@@ -146,9 +149,10 @@
                     {
                         data: 'almacen_logo',
                         render: logo => logo ?
-                            `<img src="/storage/${logo}" alt="Logo" class="img-fluid" style="height:40px;">` :
+                            `<img src="/storage/${logo}?t=${new Date().getTime()}" alt="Logo" class="img-fluid" style="height:40px;">` :
                             '<i>Sin logo</i>'
                     },
+
                     {
                         data: 'almacen_estado',
                         render: d => d == 1 ? '<span class="badge bg-success">Activo</span>' :
@@ -204,10 +208,19 @@
 
             $('#warehouseForm').submit(function(e) {
                 e.preventDefault();
+
+                let $btn = $('#btnSaveWarehouse');
+                let originalContent = $btn.html();
+                $btn.prop('disabled', true).html(
+                    '<span class="spinner-border spinner-border-sm" role="status"></span> Guardando...');
+
                 let id = $('#warehouseId').val();
                 let url = id ? `/almacen/${id}` : '/almacen';
                 let formData = new FormData(this);
                 if (id) formData.append('_method', 'PUT');
+
+                $('#warehouseForm .is-invalid').removeClass('is-invalid');
+                $('#warehouseForm .invalid-feedback').text('');
 
                 $.ajax({
                     url: url,
@@ -216,11 +229,19 @@
                     processData: false,
                     contentType: false,
                     success: res => {
-                        warehouseModal.hide();
-                        table.ajax.reload(null, false);
-                        alert(res.message);
+                        $btn.html('<i class="fa fa-check text-white"></i> Guardado');
+
+                        setTimeout(() => {
+                            warehouseModal.hide();
+                            table.ajax.reload(null, false);
+                            $btn.html(originalContent).prop('disabled', false);
+                            $('#warehouseForm')[0].reset();
+                            $('#propietario_id').val(null).trigger('change');
+                        }, 1000);
                     },
                     error: xhr => {
+                        $btn.html(originalContent).prop('disabled', false);
+
                         if (xhr.status === 422) {
                             let errors = xhr.responseJSON.errors;
                             for (let field in errors) {
@@ -228,20 +249,31 @@
                                 input.addClass('is-invalid');
                                 input.next('.invalid-feedback').text(errors[field][0]);
                             }
-                        } else alert('Error en el servidor');
+                        } else {
+                            alert('Error en el servidor');
+                        }
                     }
                 });
             });
 
+
             $('#warehouseTable').on('click', '.btn-toggle-estado', function() {
                 if (!confirm('¿Está seguro de cambiar el estado del almacén?')) return;
-                let id = $(this).data('id');
+                let $btn = $(this);
+                let id = $btn.data('id');
+                let originalHtml = $btn.html();
+                $btn.prop('disabled', true).html(
+                    '<span class="spinner-border spinner-border-sm" role="status"></span>');
+
                 $.ajax({
                     url: `/almacen/${id}`,
                     method: 'DELETE',
                     success: res => {
                         table.ajax.reload(null, false);
-                        alert(res.message);
+                        //alert(res.message);
+                    },
+                    complete: function() {
+                        $btn.prop('disabled', false).html(originalHtml);
                     }
                 });
             });
