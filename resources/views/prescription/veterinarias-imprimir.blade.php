@@ -151,8 +151,22 @@
                         <td style="width: 25%;">{{ $subespecie->subespecie_nombre ?? '-' }}</td>
                     </tr>
                     @php
-                        $sexo = ['HEMBRA', 'MACHO'][rand(0, 1)];
-                        $edad = rand(6, 24) . ' MESES';
+                        // Obtener un sexo aleatorio del array
+                        $sexo = '-';
+                        if (is_array($subespecie->sexos) && count($subespecie->sexos) > 0) {
+                            $sexo = strtoupper($subespecie->sexos[array_rand($subespecie->sexos)]);
+                        }
+
+                        // Generar edad aleatoria entre min y max
+                        $edad = '-';
+                        if (
+                            is_numeric($subespecie->edad_min) &&
+                            is_numeric($subespecie->edad_max) &&
+                            $subespecie->edad_min <= $subespecie->edad_max
+                        ) {
+                            $randomEdad = rand($subespecie->edad_min, $subespecie->edad_max);
+                            $edad = $randomEdad . ' ' . strtoupper($subespecie->unidad_edad);
+                        }
                     @endphp
                     <tr>
                         <td style="width: 25%;">SEXO:</td>

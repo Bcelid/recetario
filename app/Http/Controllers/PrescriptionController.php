@@ -7,6 +7,7 @@ use App\Models\RecetaLote;
 use App\Models\Receta;
 use App\Models\Cliente;
 use App\Models\Dosificacion;
+use App\Models\RecetaProducto;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
@@ -15,6 +16,7 @@ use Carbon\Carbon;
 use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Writer\PngWriter;
 use Endroid\QrCode\Encoding\Encoding;
+
 use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevelLow;
 use Endroid\QrCode\Label\Label;
 use Endroid\QrCode\Label\Font\NotoSans;
@@ -26,6 +28,10 @@ class PrescriptionController extends Controller
     public function viewCreate()
     {
         return view('prescription.newprescription'); // Ajusta a la ruta de tu vista para crear producto
+    }
+    public function viewCreatev1()
+    {
+        return view('prescription.newprescriptionv1'); // Ajusta a la ruta de tu vista para crear producto
     }
 
     public function viewPrescriptionLote()
@@ -260,6 +266,152 @@ class PrescriptionController extends Controller
         return $reparto;
     }
 
+    public function storev1(Request $request)
+    {
+        $request->validate([
+            'tecnico_id' => 'required|exists:tecnico,tecnico_id',
+            'almacen_id' => 'required|exists:almacen,almacen_id',
+            'receta_tipo' => 'required|in:0,1',
+            'fecha_creacion' => 'required|date',
+            'recetas' => 'required|array|min:1',
+            'recetas.*.fecha_emision' => 'required|date',
+            'recetas.*.productos' => 'required|array|min:1',
+            'recetas.*.productos.*.producto_id' => 'required|exists:producto,producto_id',
+            'recetas.*.productos.*.producto_cantidad' => 'required|numeric|min:1',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            // Crear lote
+            $recetaLote = RecetaLote::create([
+                'tecnico_id' => $request->tecnico_id,
+                'almacen_id' => $request->almacen_id,
+                'receta_tipo' => $request->receta_tipo,
+                'fecha_creacion' => $request->fecha_creacion,
+                'receta_lote_estado' => 1,
+                'receta_lote_path' => '',
+                'receta_lote_firmado' => 0,
+                'receta_lote_enviado' => 0,
+            ]);
+
+            // Clientes disponibles
+            $clientes = Cliente::where('cliente_almacen_id', $request->almacen_id)
+                ->pluck('cliente_id')
+                ->toArray();
+
+            if (empty($clientes)) {
+                return response()->json(['error' => 'No hay clientes asociados al almacén.'], 400);
+            }
+
+            // Control de secuencia
+            $recetaSecuencias = [];
+            $keySecuencia = $request->almacen_id . '_' . $request->receta_tipo;
+            $ultimaReceta = Receta::whereHas('recetaLote', function ($q) use ($request) {
+                $q->where('almacen_id', $request->almacen_id)
+                    ->where('receta_tipo', $request->receta_tipo);
+            })->orderBy('receta_numero', 'desc')->first();
+
+            $recetaSecuencias[$keySecuencia] = $ultimaReceta ? $ultimaReceta->receta_numero + 1 : 1;
+
+            // Iterar recetas del lote
+            foreach ($request->recetas as $recetaInput) {
+                $fechaEmision = $recetaInput['fecha_emision'];
+
+                // Cliente y número secuencial
+                $clienteId = $clientes[array_rand($clientes)];
+                $numero = $recetaSecuencias[$keySecuencia]++;
+
+                // Crear UNA receta para todos los productos del bloque
+                $receta = Receta::create([
+                    'receta_lote_id' => $recetaLote->receta_lote_id,
+                    'cliente_id' => $clienteId,
+                    'fecha_emision' => $fechaEmision,
+                    'receta_numero' => $numero,
+                ]);
+
+                foreach ($recetaInput['productos'] as $productoInput) {
+                    $productoId = $productoInput['producto_id'];
+                    $cantidad = floatval($productoInput['producto_cantidad']);
+
+                    // Verificamos dosificación
+                    $dosificaciones = Dosificacion::where('producto_id', $productoId)->pluck('dosificacion_id')->toArray();
+                    if (empty($dosificaciones)) {
+                        return response()->json([
+                            'error' => "El producto ID $productoId no tiene dosificaciones asociadas."
+                        ], 400);
+                    }
+
+                    $dosificacionId = $dosificaciones[array_rand($dosificaciones)];
+
+                    // Creamos el detalle de producto en la receta
+                    RecetaProducto::create([
+                        'receta_id' => $receta->receta_id,
+                        'producto_id' => $productoId,
+                        'dosificacion_id' => $dosificacionId,
+                        'producto_cantidad' => $cantidad,
+                    ]);
+                }
+            }
+
+
+            DB::commit();
+
+            // Generar PDF
+            if ($request->receta_tipo == 0) {
+                $recetaLote->load([
+                    'almacen.propietario',
+                    'tecnico',
+                    'recetas.cliente',
+                    'recetas.productos.producto.formulacion',
+                    'recetas.productos.producto.ingredientes.ingredienteActivo',
+                    'recetas.productos.producto.unidadMedida',
+                    'recetas.productos.dosificacion.cultivo',
+                    'recetas.productos.dosificacion.maleza',
+                ]);
+
+                $pdf = Pdf::loadView('prescription.agricolas-imprimirv2', compact('recetaLote'))
+                    ->setPaper('A4', 'portrait');
+
+                $path = 'recetas/lote_' . $recetaLote->receta_lote_id . '.pdf';
+                Storage::disk('public')->put($path, $pdf->output());
+
+                $recetaLote->update(['receta_lote_path' => $path]);
+            }
+
+            if ($request->receta_tipo == 1) {
+                $recetaLote->load([
+                    'almacen.propietario',
+                    'tecnico',
+                    'recetas.cliente',
+                    'recetas.productos.producto.formulacion',
+                    'recetas.productos.producto.ingredientes.ingredienteActivo',
+                    'recetas.productos.producto.unidadMedida',
+                    'recetas.productos.dosificacion.subespecie.especie',
+                ]);
+
+                $pdf = Pdf::loadView('prescription.veterinarias-imprimirv2', compact('recetaLote'))
+                    ->setPaper('A4', 'landscape');
+
+                $path = 'recetas/lote_veterinario_' . $recetaLote->receta_lote_id . '.pdf';
+                Storage::disk('public')->put($path, $pdf->output());
+
+                $recetaLote->update(['receta_lote_path' => $path]);
+            }
+
+            return response()->json([
+                'message' => 'Receta lote generado correctamente.',
+                'receta_lote_id' => $recetaLote->receta_lote_id
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'error' => 'Error al generar receta lote: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+
 
     public function imprimirRecetasAgricolas($loteId)
     {
@@ -315,7 +467,7 @@ class PrescriptionController extends Controller
             ->writer(new PngWriter())
             ->data($qrContent)
             ->encoding(new Encoding('UTF-8'))
-            
+
             ->size(200)
             ->margin(10)
             ->build();
@@ -328,32 +480,32 @@ class PrescriptionController extends Controller
         if ($recetaLote->receta_tipo == 0) { // Agrícola
             $recetaLote->load([
                 'almacen.propietario',
-                'tecnico.categoria',
-                'recetas.producto.formulacion',
-                'recetas.producto.ingredientes.ingredienteActivo',
-                'recetas.producto.unidadMedida',
-                'recetas.dosificacion.cultivo',
-                'recetas.dosificacion.maleza',
-                'recetas.dosificacion.subespecie',
-                'recetas.dosificacion.unidadMedidaDosificacion',
-                'recetas.cliente'
+                'tecnico',
+                'recetas.cliente',
+                'recetas.productos.producto.formulacion',
+                'recetas.productos.producto.ingredientes.ingredienteActivo',
+                'recetas.productos.producto.unidadMedida',
+                'recetas.productos.dosificacion.cultivo',
+                'recetas.productos.dosificacion.maleza',
             ]);
 
-            $pdf = Pdf::loadView('prescription.agricolas-imprimir', compact('recetaLote', 'qrImage'))
+            $pdf = Pdf::loadView('prescription.agricolas-imprimirv2', compact('recetaLote', 'qrImage'))
                 ->setPaper('A4', 'portrait');
 
             $path = 'recetas/lote_firmado_' . $recetaLote->receta_lote_id . '.pdf';
         } elseif ($recetaLote->receta_tipo == 1) { // Veterinaria
             $recetaLote->load([
                 'almacen.propietario',
-                'tecnico.categoria',
-                'recetas.producto.ingredientes.ingredienteActivo',
-                'recetas.dosificacion.subespecie.especie',
-                'recetas.cliente'
+                'tecnico',
+                'recetas.cliente',
+                'recetas.productos.producto.formulacion',
+                'recetas.productos.producto.ingredientes.ingredienteActivo',
+                'recetas.productos.producto.unidadMedida',
+                'recetas.productos.dosificacion.subespecie.especie',
             ]);
 
-            $pdf = Pdf::loadView('prescription.veterinarias-imprimir', compact('recetaLote', 'qrImage'))
-                ->setPaper('A4', 'portrait');
+            $pdf = Pdf::loadView('prescription.veterinarias-imprimirv2', compact('recetaLote', 'qrImage'))
+                ->setPaper('A4', 'landscape');
 
             $path = 'recetas/lote_firmado_veterinario_' . $recetaLote->receta_lote_id . '.pdf';
         } else {

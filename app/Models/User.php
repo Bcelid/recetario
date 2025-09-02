@@ -52,4 +52,8 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Role::class);
     }
+    public function enviosRecetas()
+    {
+        return $this->hasMany(RecetaLoteEnvio::class);
+    }
 }

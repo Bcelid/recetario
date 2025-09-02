@@ -41,29 +41,39 @@ class SubespecieController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'subespecie_nombre' => 'required|string|max:255|unique:subespecie,subespecie_nombre',
-            'subespecie_cientifico' => 'required|string|max:255',
-            'subespecie_detalle' => 'nullable|string',
-            'especie_id' => 'required|exists:especie,especie_id',
+            'subespecie_nombre'      => 'required|string|max:255|unique:subespecie,subespecie_nombre',
+            'subespecie_cientifico'  => 'required|string|max:255',
+            'subespecie_detalle'     => 'nullable|string',
+            'especie_id'             => 'required|exists:especie,especie_id',
+            'sexos'                  => 'required|array|min:1',
+            'sexos.*'                => 'string|max:50',
+            'edad_min'               => 'required|integer|min:0',
+            'edad_max'               => 'required|integer|min:0|gte:edad_min',
+            'unidad_edad'            => 'required|in:meses,años',
         ]);
 
         $subespecie = Subespecie::create([
-            'subespecie_nombre' => $validated['subespecie_nombre'],
-            'subespecie_cientifico' => $validated['subespecie_cientifico'],
-            'subespecie_detalle' => $validated['subespecie_detalle'] ?? null,
-            'especie_id' => $validated['especie_id'],
-            'subespecie_estado' => 1,
+            'subespecie_nombre'      => $validated['subespecie_nombre'],
+            'subespecie_cientifico'  => $validated['subespecie_cientifico'],
+            'subespecie_detalle'     => $validated['subespecie_detalle'] ?? null,
+            'especie_id'             => $validated['especie_id'],
+            'subespecie_estado'      => 1,
+            'sexos'                  => $validated['sexos'],
+            'edad_min'               => $validated['edad_min'],
+            'edad_max'               => $validated['edad_max'],
+            'unidad_edad'            => $validated['unidad_edad'],
         ]);
 
         return response()->json(['message' => 'Subespecie creada', 'subespecie' => $subespecie]);
     }
+
 
     /**
      * Mostrar una subespecie específica.
      */
     public function show($id)
     {
-        $subespecie = Subespecie::findOrFail($id);
+        $subespecie = Subespecie::with('especie')->findOrFail($id);
         return response()->json($subespecie);
     }
 
@@ -75,21 +85,31 @@ class SubespecieController extends Controller
         $subespecie = Subespecie::findOrFail($id);
 
         $validated = $request->validate([
-            'subespecie_nombre' => 'required|string|max:255|unique:subespecie,subespecie_nombre,' . $subespecie->subespecie_id . ',subespecie_id',
-            'subespecie_cientifico' => 'required|string|max:255',
-            'subespecie_detalle' => 'nullable|string',
-            'especie_id' => 'required|exists:especie,especie_id',
+            'subespecie_nombre'      => 'required|string|max:255|unique:subespecie,subespecie_nombre,' . $subespecie->subespecie_id . ',subespecie_id',
+            'subespecie_cientifico'  => 'required|string|max:255',
+            'subespecie_detalle'     => 'nullable|string',
+            'especie_id'             => 'required|exists:especie,especie_id',
+            'sexos'                  => 'required|array|min:1',
+            'sexos.*'                => 'string|max:50',
+            'edad_min'               => 'required|integer|min:0',
+            'edad_max'               => 'required|integer|min:0|gte:edad_min',
+            'unidad_edad'            => 'required|in:meses,años',
         ]);
 
         $subespecie->update([
-            'subespecie_nombre' => $validated['subespecie_nombre'],
-            'subespecie_cientifico' => $validated['subespecie_cientifico'],
-            'subespecie_detalle' => $validated['subespecie_detalle'] ?? null,
-            'especie_id' => $validated['especie_id'],
+            'subespecie_nombre'      => $validated['subespecie_nombre'],
+            'subespecie_cientifico'  => $validated['subespecie_cientifico'],
+            'subespecie_detalle'     => $validated['subespecie_detalle'] ?? null,
+            'especie_id'             => $validated['especie_id'],
+            'sexos'                  => $validated['sexos'],
+            'edad_min'               => $validated['edad_min'],
+            'edad_max'               => $validated['edad_max'],
+            'unidad_edad'            => $validated['unidad_edad'],
         ]);
 
         return response()->json(['message' => 'Subespecie actualizada', 'subespecie' => $subespecie]);
     }
+
 
     /**
      * Activar o desactivar subespecie (soft delete lógico).

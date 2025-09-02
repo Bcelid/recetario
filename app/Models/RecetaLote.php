@@ -41,4 +41,8 @@ class RecetaLote extends Model
     {
         return $this->hasMany(Receta::class, 'receta_lote_id', 'receta_lote_id');
     }
+    public function envios()
+    {
+        return $this->hasMany(RecetaLoteEnvio::class, 'receta_lote_id', 'receta_lote_id');
+    }
 }

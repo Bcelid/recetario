@@ -20,6 +20,8 @@ use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\UserEmailConfigController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PrescriptionController;
+use App\Http\Controllers\RecetaEmailController;
+use App\Http\Controllers\DashboardController;
 
 // Rutas públicas para login
 Route::get('/', [AuthController::class, 'showLoginForm'])->name('login');
@@ -28,9 +30,13 @@ Route::post('/', [AuthController::class, 'login']);
 // Rutas protegidas (middleware auth)
 Route::middleware('auth')->group(function () {
 
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/data', [DashboardController::class, 'getData'])->name('dashboard.data');
+    Route::get('/dashboard/charts-data', [DashboardController::class, 'getChartsData'])->name('dashboard.charts');
+    Route::get('/dashboard/counts', [DashboardController::class, 'getCounts'])->name('dashboard.counts');
+
+
+
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
@@ -223,7 +229,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/receta/firmar', [PrescriptionController::class, 'firmarLote'])->name('receta.firmar');
     Route::delete('/receta/{id}', [PrescriptionController::class, 'destroy'])->name('receta.destroy');
     Route::get('/recetas/{id}/pdf', [PrescriptionController::class, 'exportarPDF']);
-    
+    Route::get('/prescription/newprescriptionv1', [PrescriptionController::class, 'viewCreatev1'])->name('prescription.newprescriptionv1'); // Vista para crear producto
+    Route::post('/prescriptionv1', [PrescriptionController::class, 'storev1'])->name('prescription.storev1'); // Guardar nueva prescripción
 
 
 
@@ -231,5 +238,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/configuracion-correo', [UserEmailConfigController::class, 'edit'])->name('correo.config');
     Route::post('/configuracion-correo', [UserEmailConfigController::class, 'update'])->name('correo.config.update');
     Route::post('/correo/config/test', [UserEmailConfigController::class, 'testConnection'])->name('correo.config.test');
+
+    Route::get('/receta/email/datos/{id}', [RecetaEmailController::class, 'getDatosEnvio'])->name('receta.email.datos');
+    Route::post('/receta/enviar-correo', [RecetaEmailController::class, 'enviarCorreo'])->middleware('auth')->name('receta.correo.enviar');
+
+
     
 });

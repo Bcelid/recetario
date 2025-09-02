@@ -15,9 +15,6 @@ class Receta extends Model
     protected $fillable = [
         'receta_lote_id',
         'cliente_id',
-        'producto_id',
-        'dosificacion_id',   // 👈 Nueva relación directa
-        'producto_cantidad',
         'fecha_emision',
         'receta_numero',
     ];
@@ -33,13 +30,8 @@ class Receta extends Model
         return $this->belongsTo(Cliente::class, 'cliente_id', 'cliente_id');
     }
 
-    public function producto()
+    public function productos()
     {
-        return $this->belongsTo(Producto::class, 'producto_id', 'producto_id');
-    }
-
-    public function dosificacion()
-    {
-        return $this->belongsTo(Dosificacion::class, 'dosificacion_id', 'dosificacion_id');
+        return $this->hasMany(RecetaProducto::class, 'receta_id', 'receta_id');
     }
 }

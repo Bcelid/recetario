@@ -199,6 +199,12 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a href="{{ route('prescription.newprescriptionv1') }}" class="nav-link text-white ps-4">
+                                <i class="fa-solid fa-file-circle-plus nav-icon"></i>
+                                <p>Nueva Receta V1</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a href="{{ route('prescription.list_prescription') }}" class="nav-link text-white ps-4">
                                <i class="fa-solid fa-file-prescription nav-icon"></i>
                                 <p>Lote de Recetas</p>

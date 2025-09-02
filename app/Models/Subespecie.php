@@ -10,12 +10,20 @@ class Subespecie extends Model
     protected $primaryKey = 'subespecie_id';
     public $timestamps = true;
 
+    protected $casts = [
+        'sexos' => 'array',
+    ];
+
     protected $fillable = [
         'subespecie_nombre',
         'subespecie_cientifico',
         'subespecie_estado',
         'subespecie_detalle',
         'especie_id',
+        'sexos',
+        'edad_min',
+        'edad_max',
+        'unidad_edad',
     ];
 
     /**

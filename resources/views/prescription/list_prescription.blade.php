@@ -41,6 +41,65 @@
             </thead>
         </table>
     </div>
+
+    <!-- Modal Enviar Correo -->
+    <div class="modal fade" id="modalEnviarCorreo" tabindex="-1" aria-labelledby="modalEnviarCorreoLabel"
+        aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-lg">
+            <form id="formEnviarCorreo">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Enviar Receta por Correo</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="correoLoteId">
+                        <input type="hidden" id="correoAlmacenId">
+                        <div class="mb-3">
+                            <label for="correoAsunto" class="form-label">Asunto</label>
+                            <input type="text" class="form-control" id="correoAsunto" value="ENVÍO DE RECETA">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="remitente" class="form-label">Remitente</label>
+                            <input type="text" class="form-control" id="remitente" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="destinatario" class="form-label">Destinatario</label>
+                            <input type="email" class="form-control" id="destinatario" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="cuerpoCorreo" class="form-label">Mensaje</label>
+                            <textarea class="form-control" id="cuerpoCorreo" rows="6"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label>Documento adjunto:</label>
+                            <p><a href="#" id="linkDocumento" target="_blank">Ver documento</a></p>
+                        </div>
+                        <div class="mb-3 mt-4">
+                            <h6>Historial de envíos</h6>
+                            <table class="table table-sm table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Destinatario</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historialEnviosBody">
+                                    <!-- Aquí se cargarán las filas -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" id="btn-enviar-correo" class="btn btn-primary">Enviar Correo</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
 @endsection
 
 @section('scripts')
@@ -157,9 +216,10 @@
     <i class="fa-solid fa-pen-nib"></i>
 </button>
 
-                <button class="btn btn-sm btn-primary" title="Enviar" ${!isActivo || !isFirmado ? 'disabled' : ''}>
-                    <i class="fa-solid fa-paper-plane"></i>
-                </button>
+                <button class="btn btn-sm btn-primary btn-enviar-correo"  title="Enviar" data-id="${data.receta_lote_id}" ${!isActivo || !isFirmado ? 'disabled' : ''}>
+    <i class="fa-solid fa-paper-plane"></i>
+</button>
+
                 <button class="btn btn-sm ${isActivo ? 'btn-danger' : 'btn-success'} btn-toggle-estado" data-id="${data.receta_lote_id}">
                     ${isActivo ? '<i class="fa-solid fa-xmark-circle"></i>' : '<i class="fa-solid fa-check-circle"></i>'}
                 </button>
@@ -179,7 +239,7 @@
 
             // Cambiar estado del lote
             $('#lotesTable').on('click', '.btn-toggle-estado', function() {
-                
+
                 if (!confirm('¿Estás seguro de cambiar el estado del lote?')) return;
 
                 let $btn = $(this);
@@ -189,7 +249,7 @@
                     '<span class="spinner-border spinner-border-sm" role="status"></span>');
 
 
-                
+
 
                 $.ajax({
                     url: `/receta/${id}`,
@@ -246,7 +306,84 @@
                 });
             });
 
+            // Abrir modal de correo
+            $('#lotesTable').on('click', '.btn-enviar-correo', function() {
+                const id = $(this).data('id');
 
+                console.log('[Correo] Cargando datos del lote:', id);
+
+                $.get(`/receta/email/datos/${id}`, function(res) {
+                    console.log('[Correo] Datos recibidos:', res);
+
+                    $('#correoLoteId').val(res.lote_id);
+                    $('#correoAlmacenId').val(res.almacen_id);
+                    $('#remitente').val(`${res.remitente_nombre} <${res.remitente_correo}>`);
+                    $('#destinatario').val(res.destinatario);
+                    $('#cuerpoCorreo').val(res.body);
+                    $('#linkDocumento').attr('href', res.documento_url);
+
+                    // Limpiar tabla
+                    $('#historialEnviosBody').empty();
+
+                    // Suponiendo que res.historial es un array con los envíos previos
+                    if (res.historial && res.historial.length > 0) {
+                        res.historial.forEach(envio => {
+                            $('#historialEnviosBody').append(`
+            <tr>
+                <td>${envio.fecha}</td>
+                <td>${envio.destinatario}</td>
+            </tr>
+        `);
+                        });
+                    } else {
+                        $('#historialEnviosBody').append(`
+        <tr>
+            <td colspan="3" class="text-center">No hay envíos previos.</td>
+        </tr>
+    `);
+                    }
+
+                    const modal = new bootstrap.Modal(document.getElementById('modalEnviarCorreo'));
+                    modal.show();
+                }).fail(function(xhr) {
+                    let msg = 'Error al obtener los datos del correo.';
+                    if (xhr.responseJSON?.error) {
+                        msg = xhr.responseJSON.error;
+                    }
+                    alert(msg);
+                });
+            });
+
+            $('#formEnviarCorreo').on('submit', function(e) {
+                e.preventDefault();
+
+                let $btn = $('#btn-enviar-correo');
+                let original = $btn.html();
+                $btn.prop('disabled', true).html(
+                    '<span class="spinner-border spinner-border-sm" role="status"></span> Enviando...');
+
+                const data = {
+                    receta_lote_id: $('#correoLoteId').val(),
+                    almacen_id: $('#correoAlmacenId').val(),
+                    to: $('#destinatario').val(),
+                    subject: $('#correoAsunto').val(),
+                    body: $('#cuerpoCorreo').val(),
+                };
+
+
+                $.post('/receta/enviar-correo', data, function(res) {
+                    $btn.html('<i class="fa fa-check text-white"></i> Enviado');
+                    $('#modalEnviarCorreo').modal('hide');
+                    table.ajax.reload(null, false);
+                }).fail(function(xhr) {
+                    console.error('Respuesta completa:', xhr);
+                    let msg = 'Error al enviar el correo.';
+                    if (xhr.responseJSON?.error) {
+                        msg = xhr.responseJSON.error;
+                    }
+                    alert(msg);
+                });
+            });
 
 
         });

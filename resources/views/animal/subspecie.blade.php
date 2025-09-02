@@ -33,7 +33,8 @@
         </table>
     </div>
     <!-- Modal Crear/Editar Subespecie -->
-    <div class="modal fade" id="subespecieModal" tabindex="-1" aria-labelledby="subespecieModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal fade" id="subespecieModal" tabindex="-1" aria-labelledby="subespecieModalLabel" aria-hidden="true"
+        data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog">
             <form id="subespecieForm">
                 <div class="modal-content">
@@ -71,6 +72,42 @@
                             <textarea class="form-control" id="subespecie_detalle" name="subespecie_detalle" rows="3"></textarea>
                             <div class="invalid-feedback"></div>
                         </div>
+
+                        <div class="mb-3">
+                            <label for="sexos" class="form-label">Sexo(s) *</label>
+                            <select id="sexos" name="sexos[]" class="form-select" multiple required>
+                                <option value="macho">Macho</option>
+                                <option value="hembra">Hembra</option>
+                                <option value="otro">Otro</option>
+                            </select>
+                            <div class="invalid-feedback"></div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label for="edad_min" class="form-label">Edad mínima *</label>
+                                <input type="number" class="form-control" id="edad_min" name="edad_min" min="0"
+                                    required>
+                                <div class="invalid-feedback"></div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="edad_max" class="form-label">Edad máxima *</label>
+                                <input type="number" class="form-control" id="edad_max" name="edad_max" min="0"
+                                    required>
+                                <div class="invalid-feedback"></div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="unidad_edad" class="form-label">Unidad *</label>
+                                <select id="unidad_edad" name="unidad_edad" class="form-select" required>
+                                    <option value="meses">Meses</option>
+                                    <option value="años">Años</option>
+                                </select>
+                                <div class="invalid-feedback"></div>
+                            </div>
+                        </div>
+
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -100,6 +137,13 @@
                     });
                 });
             }
+            $('#sexos').select2({
+                tags: true,
+                placeholder: 'Ingrese el sexo(s)',
+                width: '100%',
+                allowClear: true,
+                tokenSeparators: [',', ' ']
+            });
 
             let table = $('#subespeciesTable').DataTable({
                 ajax: {
@@ -177,7 +221,16 @@
                     $('#subespecie_nombre').val(data.subespecie_nombre);
                     $('#subespecie_cientifico').val(data.subespecie_cientifico);
                     $('#subespecie_detalle').val(data.subespecie_detalle);
-                    setTimeout(() => $('#especie_id').val(data.especie_id), 200);
+                    $('#edad_min').val(data.edad_min);
+                    $('#edad_max').val(data.edad_max);
+                    $('#unidad_edad').val(data.unidad_edad);
+
+                    $('#sexos').val(data.sexos).trigger('change');
+
+                    
+                    setTimeout(() => {
+                        $('#especie_id').val(data.especie_id);
+                    }, 300);
 
                     subespecieModal.show();
                 });
@@ -185,6 +238,13 @@
 
             $('#subespecieForm').submit(function(e) {
                 e.preventDefault();
+                let min = parseInt($('#edad_min').val());
+                let max = parseInt($('#edad_max').val());
+                if (min > max) {
+                    
+                    alert('La edad mínima no puede ser mayor que la edad máxima.');
+                    return;
+                }
 
                 let $btn = $('#subespecieForm button[type="submit"]');
                 let original = $btn.html();
@@ -203,6 +263,10 @@
                     subespecie_cientifico: $('#subespecie_cientifico').val(),
                     subespecie_detalle: $('#subespecie_detalle').val(),
                     especie_id: $('#especie_id').val(),
+                    sexos: $('#sexos').val(), // select2 devuelve array
+                    edad_min: $('#edad_min').val(),
+                    edad_max: $('#edad_max').val(),
+                    unidad_edad: $('#unidad_edad').val(),
                 };
 
                 if (id) {
