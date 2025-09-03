@@ -111,15 +111,17 @@ Route::middleware('auth')->group(function () {
 
     // Vista principal del listado de clientes
     Route::get('store/client', [ClienteController::class, 'viewIndex'])->name('store.client');
+    Route::post('client/import',[ClienteController::class,'import'])->name('cliente.import');
 
     // CRUD Cliente
     Route::prefix('cliente')->name('cliente.')->group(function () {
         Route::get('/', [ClienteController::class, 'index'])->name('index');             // Listar (con filtro)
-        Route::post('/', [ClienteController::class, 'store'])->name('store');            // Crear nuevo
+        Route::post('/', [ClienteController::class, 'store'])->name('store');
         Route::get('/{id}', [ClienteController::class, 'show'])->name('show');           // Ver detalle
         Route::put('/{id}', [ClienteController::class, 'update'])->name('update');       // Actualizar
         Route::delete('/{id}', [ClienteController::class, 'destroy'])->name('destroy');  // Activar/Inactivar
         Route::delete('/{id}/force', [ClienteController::class, 'forceDelete'])->name('forceDelete'); // Eliminación total (opcional)
+        
     });
 
     // Vista principal del listado de cultivos

@@ -36,10 +36,11 @@
                         value="{{ $producto->producto_concentracion }}" required>
                 </div>
                 <div class="col-md-4">
-    <label class="form-label">Presentación *</label>
-    <input type="text" name="presentacion" class="form-control" required pattern="^\d+(\.\d+)?$" inputmode="decimal" placeholder="Ej: 10.5" value="{{ $producto->producto_presentacion }}">
-    <div class="invalid-feedback">Ingrese un número decimal válido usando punto (.)</div>
-</div>
+                    <label class="form-label">Presentación *</label>
+                    <input type="text" name="presentacion" class="form-control" required pattern="^\d+(\.\d+)?$"
+                        inputmode="decimal" placeholder="Ej: 10.5" value="{{ $producto->producto_presentacion }}">
+                    <div class="invalid-feedback">Ingrese un número decimal válido usando punto (.)</div>
+                </div>
                 <div class="col-md-4">
                     <label>Unidad de Medida *</label>
                     <select name="unidad_medida_id" class="form-select" id="selectUnidad"></select>
@@ -157,6 +158,7 @@
             </div>
 
             <div class="text-end">
+                <button type="button" class="btn btn-success" id="btnGuardarComoNuevo">Guardar como nuevo</button>
                 <button type="submit" class="btn btn-primary">Actualizar Producto</button>
                 <a href="{{ route('product.index') }}" class="btn btn-secondary">Cancelar</a>
             </div>
@@ -164,7 +166,7 @@
 
     </div>
 
-    
+
 @endsection
 
 @section('scripts')
@@ -344,7 +346,7 @@
                         const tipo = $('#tipoProducto').val();
                         let item = {
                             dosificacion_id: $(this).find('.dosificacion-id')
-                        .val(), // 👈 importante
+                                .val(), // 👈 importante
                             aplicacion: $(this).find('.input-aplicacion').val()
                         };
 
@@ -383,6 +385,73 @@
                     });
                 });
             }
+
+            $('#btnGuardarComoNuevo').click(function() {
+                $('#loadingModal').modal('show');
+
+                const data = {
+                    tipo_producto: tipoActual,
+                    nombre_producto: $('input[name="nombre_producto"]').val(),
+                    concentracion: $('input[name="concentracion"]').val(),
+                    presentacion: $('input[name="presentacion"]').val(),
+                    unidad_medida_id: $('#selectUnidad').val(),
+                    formulacion_id: $('#selectFormulacion').val(),
+                    cantidad_envase: $('input[name="cantidad_envase"]').val(),
+                    diagnostico: $('textarea[name="diagnostico"]').val(),
+                    ingredientes: [],
+                    dosificaciones: []
+                };
+
+                // Ingredientes
+                $('#tablaIngredientes tbody tr').each(function() {
+                    data.ingredientes.push({
+                        ingrediente_id: $(this).find('.select-ingrediente').val(),
+                        porcentaje: $(this).find('input').val(),
+                        unidad_id: $(this).find('.select-unidad').val()
+                    });
+                });
+
+                // Dosificaciones
+                $('#tablaDosificacion tbody tr').each(function() {
+                    const tipo = $('#tipoProducto').val();
+                    let item = {
+                        aplicacion: $(this).find('.input-aplicacion').val()
+                    };
+
+                    if (tipo === '0') {
+                        item.cultivo_id = $(this).find('.select-cultivo').val();
+                        item.maleza_id = $(this).find('.select-maleza').val();
+                        item.dosis = $(this).find('.input-dosis').val();
+                        item.unidad_dosificacion_id = $(this).find('.select-unidad-dosificacion')
+                            .val();
+                    } else {
+                        item.subespecie_id = $(this).find('.select-subespecie').val();
+                    }
+
+                    data.dosificaciones.push(item);
+                });
+
+                // Enviar como POST (nuevo producto)
+                $.ajax({
+                    url: '/producto',
+                    method: 'POST',
+                    data: JSON.stringify(data),
+                    contentType: 'application/json',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(res) {
+                        $('#loadingModal').modal('hide');
+                        window.location.href = routeToIndex;
+                    },
+                    error: function(err) {
+                        $('#loadingModal').modal('hide');
+                        alert('Error al guardar como nuevo');
+                        console.error(err.responseJSON);
+                    }
+                });
+            });
+
 
             // Función reutilizable para llenar selects
             function cargarSelect(url, selector, labelFn) {

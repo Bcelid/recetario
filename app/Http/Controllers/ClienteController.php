@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Cliente;
 use Illuminate\Http\Request;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Reader\Exception as PhpSpreadsheetException;
+
 
 class ClienteController extends Controller
 {
@@ -41,15 +44,28 @@ class ClienteController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'cliente_cedula'     => 'required|string|max:20|unique:cliente,cliente_cedula',
+            'cliente_cedula'     => 'required|string|max:20',
             'cliente_nombre'     => 'required|string|max:100',
             'cliente_apellido'   => 'required|string|max:100',
             'cliente_direccion'  => 'nullable|string|max:255',
             'cliente_almacen_id' => 'required|exists:almacen,almacen_id',
         ]);
 
+        // Validar si la combinación de cedula y almacen ya existe
+        $exists = Cliente::where('cliente_cedula', $validated['cliente_cedula'])
+            ->where('cliente_almacen_id', $validated['cliente_almacen_id'])
+            ->exists();
+
+        if ($exists) {
+            return response()->json([
+                'message' => 'Este cliente ya está registrado en este almacén.',
+            ], 400);
+        }
+
+        // Estado por defecto
         $validated['cliente_estado'] = 1;
 
+        // Crear el cliente
         $cliente = Cliente::create($validated);
 
         return response()->json([
@@ -57,6 +73,7 @@ class ClienteController extends Controller
             'cliente' => $cliente
         ]);
     }
+
 
     /**
      * Mostrar un cliente específico.
@@ -82,6 +99,18 @@ class ClienteController extends Controller
             'cliente_almacen_id' => 'required|exists:almacen,almacen_id',
         ]);
 
+        // Validar si la combinación de cedula y almacen ya existe (excepto en el cliente actual)
+        $exists = Cliente::where('cliente_cedula', $validated['cliente_cedula'])
+            ->where('cliente_almacen_id', $validated['cliente_almacen_id'])
+            ->where('cliente_id', '!=', $id)  // Excluir el cliente actual
+            ->exists();
+
+        if ($exists) {
+            return response()->json([
+                'message' => 'Este cliente ya está registrado en este almacén.',
+            ], 400);
+        }
+
         $cliente->update($validated);
 
         return response()->json([
@@ -89,6 +118,7 @@ class ClienteController extends Controller
             'cliente' => $cliente
         ]);
     }
+
 
     /**
      * Cambiar estado del cliente (activar/desactivar).
@@ -116,5 +146,63 @@ class ClienteController extends Controller
         $cliente->forceDelete();
 
         return response()->json(['message' => 'Cliente eliminado permanentemente.']);
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'almacen_id' => 'required|exists:almacen,almacen_id',
+            'excel_file' => 'required|file|mimes:xlsx,xls',
+        ]);
+
+        $file = $request->file('excel_file');
+
+        $clientesYaRegistrados = [];
+        $clientesDuplicados = [];
+
+        try {
+            $spreadsheet = IOFactory::load($file);
+            $sheet = $spreadsheet->getActiveSheet();
+            $rows = $sheet->toArray();
+
+            foreach ($rows as $index => $row) {
+                if ($index == 0) continue; // Ignorar la fila de encabezados
+
+                $clienteData = [
+                    'cliente_cedula'    => $row[0],
+                    'cliente_nombre'    => $row[1],
+                    'cliente_apellido'  => $row[2],
+                    'cliente_direccion' => $row[3],
+                    'cliente_estado'    => 1,
+                    'cliente_almacen_id' => $request->almacen_id,
+                ];
+
+                // Verificar si ya existe un cliente con la misma cédula y en el mismo almacén
+                $exists = Cliente::where('cliente_cedula', $clienteData['cliente_cedula'])
+                    ->where('cliente_almacen_id', $clienteData['cliente_almacen_id'])
+                    ->exists();
+
+                if ($exists) {
+                    $clientesDuplicados[] = $clienteData['cliente_nombre'] .' '. $clienteData['cliente_apellido'];
+                } else {
+                    // Crear el cliente si no existe
+                    Cliente::create($clienteData);
+                    $clientesYaRegistrados[] = $clienteData['cliente_nombre'] .' '. $clienteData['cliente_apellido'];
+                }
+            }
+
+            return response()->json([
+                'message' => 'Clientes importados correctamente.',
+                'clientes_ya_registrados' => $clientesYaRegistrados,
+                'clientes_duplicados' => $clientesDuplicados,
+            ]);
+        } catch (PhpSpreadsheetException $e) {
+            return response()->json([
+                'message' => 'Error al procesar el archivo Excel.',
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+            ], 400);
+        }
     }
 }

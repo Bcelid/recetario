@@ -25,6 +25,9 @@ class DashboardController extends Controller
         if ($request->filled('fecha_max')) {
             $query->whereDate('fecha_creacion', '<=', $request->fecha_max);
         }
+        if ($request->filled('almacen_id')) {
+            $query->where('almacen_id', $request->almacen_id);
+        }
 
         // Clonar la query base para contar enviados y no enviados sin perder filtros
         $enviadosCount = (clone $query)->where('receta_lote_enviado', true)->count();
@@ -70,9 +73,13 @@ class DashboardController extends Controller
             $query->whereDate('fecha_creacion', '<=', $request->fecha_max);
         }
 
+        if ($request->filled('almacen_id')) {
+            $query->where('almacen_id', $request->almacen_id);
+        }
+
         return DataTables::eloquent($query)
             ->addColumn('tecnico', fn($lote) => $lote->tecnico->name ?? 'N/A')
-            ->addColumn('almacen', fn($lote) => $lote->almacen->nombre ?? 'N/A')
+            ->addColumn('almacen', fn($lote) => $lote->almacen->almacen_nombre ?? 'N/A')
             ->editColumn('receta_tipo', fn($lote) => $lote->receta_tipo == 0 ? 'Agrícola' : 'Veterinario')
             ->addColumn('estado_envio', fn($lote) => $lote->receta_lote_enviado ? 'Enviado' : 'No enviado')
             ->make(true);
@@ -97,6 +104,10 @@ class DashboardController extends Controller
 
         if ($fechaMax) {
             $query->whereDate('created_at', '<=', $fechaMax);
+        }
+
+        if ($request->filled('almacen_id')) {
+            $query->where('almacen_id', $request->almacen_id);
         }
 
         $enviados = (clone $query)->whereNotNull('receta_lote_fecha_envio')->count();

@@ -15,6 +15,9 @@
         </select>
 
         <button class="btn btn-success ms-auto" id="btnNewCliente">Nuevo Cliente</button>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#importarClientesModal">
+            Importar Clientes
+        </button>
     </div>
     <div class="table-responsive">
         <table id="clientesTable" class="display table table-striped" style="width:100%">
@@ -33,7 +36,8 @@
         </table>
     </div>
     <!-- Modal Crear/Editar Cliente -->
-    <div class="modal fade" id="clienteModal" tabindex="-1" aria-labelledby="clienteModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal fade" id="clienteModal" tabindex="-1" aria-labelledby="clienteModalLabel" aria-hidden="true"
+        data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog">
             <form id="clienteForm">
                 <div class="modal-content">
@@ -88,6 +92,53 @@
         </div>
     </div>
 
+    <!-- Modal -->
+    <div class="modal fade" id="importarClientesModal" tabindex="-1" aria-labelledby="importarClientesLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <!-- Encabezado del Modal -->
+                <div class="modal-header">
+                    <h5 class="modal-title" id="importarClientesLabel">Importar Clientes</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+
+                <!-- Cuerpo del Modal -->
+                <div class="modal-body">
+                    <form id="importarClientesForm">
+
+                        <!-- Selección de Almacén -->
+                        <div class="mb-3">
+                            <label for="cliente_almacen_id" class="form-label">Almacén *</label>
+                            <select class="form-select" name="almacen_id" id="cliente_almacen_id_import" required>
+
+                                <!-- Se carga por AJAX -->
+                            </select>
+                            <div class="invalid-feedback"></div>
+                        </div>
+
+                        <!-- Subida de Archivo Excel -->
+                        <div class="mb-3">
+                            <label for="archivoExcel" class="form-label">Subir archivo Excel</label>
+                            <input class="form-control" type="file" id="archivoExcel" name="excel_file"
+                                accept=".xlsx,.xls" required>
+
+                        </div>
+
+                    </form>
+                </div>
+
+                <!-- Footer del Modal -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success"  id="btnImportarClientes" form="importarClientesForm">Importar</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 @section('scripts')
@@ -106,6 +157,19 @@
                     });
                 });
             }
+            // Para el modal de importar
+            $('#importarClientesModal').on('shown.bs.modal', function() {
+                $('#archivoExcel').val('');
+                $.get('/almacen?estado=1', function(almacenes) {
+                    const $select = $('#cliente_almacen_id_import');
+                    $select.empty();
+                    almacenes.forEach(a => {
+                        $select.append(
+                            `<option value="${a.almacen_id}">${a.almacen_nombre}</option>`
+                        );
+                    });
+                });
+            });
 
             let table = $('#clientesTable').DataTable({
                 ajax: {
@@ -232,16 +296,27 @@
                         }, 800);
                     },
                     error: function(xhr) {
+                        // Restaurar el botón original y habilitarlo
                         $btn.html(original).prop('disabled', false);
 
-                        if (xhr.status === 422) {
+                        // Comprobar si el error es 422 o 400
+                        if (xhr.status === 422 || xhr.status === 400) {
                             let errors = xhr.responseJSON.errors;
+
+                            // Recorremos los errores y los mostramos en los campos correspondientes
                             for (let field in errors) {
                                 let input = $(`[name="${field}"]`);
                                 input.addClass('is-invalid');
                                 input.next('.invalid-feedback').text(errors[field][0]);
                             }
+
+                            // Si existe un mensaje personalizado en la respuesta JSON, lo mostramos
+                            if (xhr.responseJSON.message) {
+                                alert(xhr.responseJSON
+                                    .message); // O mostrarlo en un contenedor de notificación
+                            }
                         } else {
+                            // Mostrar un mensaje genérico si ocurre un error distinto
                             alert('Error en el servidor');
                         }
                     }
@@ -274,6 +349,54 @@
                     }
                 });
             });
+
+
+            $('#importarClientesForm').submit(function(e) {
+                e.preventDefault();
+
+                let $btn = $('#btnImportarClientes');
+                let originalHtml = $btn.html();
+
+                // Verifica que el texto original y el cambio al spinner se están aplicando correctamente.
+                console.log('Original Button Text:', originalHtml);
+                $btn.prop('disabled', true).html(
+                    '<span class="spinner-border spinner-border-sm" role="status"></span> Subiendo...');
+
+                // Asegúrate de que el spinner se ve correctamente
+                console.log('Button Text After Change:', $btn.html());
+
+
+                let formData = new FormData(this);
+
+                $.ajax({
+                    url: '/client/import',
+                    method: 'POST',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function(res) {
+                        alert(res.message + '\nClientes duplicados:\n' + res.clientes_duplicados
+                            .join('\n'));
+                        $('#importarClientesModal').modal('hide');
+                        table.ajax.reload(); // Recarga la tabla de clientes
+                    },
+                    error: function(xhr) {
+                        var errorMsg = 'Error al importar los clientes';
+                        if (xhr.responseJSON && xhr.responseJSON.error) {
+                            errorMsg =
+                                `Error: ${xhr.responseJSON.error}\nArchivo: ${xhr.responseJSON.file}\nLínea: ${xhr.responseJSON.line}`;
+                        } else {
+                            errorMsg =
+                                'Hubo un error al procesar la solicitud. Por favor, intenta nuevamente.';
+                        }
+                        alert(errorMsg);
+                    },
+                    complete: function() {
+                        $btn.prop('disabled', false).html(originalHtml);
+                    }
+                });
+            });
+
 
         });
     </script>
