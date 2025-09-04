@@ -182,7 +182,8 @@
                         {
                             data: 'receta_lote_firmado',
                             render: function(firmado) {
-                                return firmado ?
+                                // Asegurarse de que firmado sea un valor booleano
+                                return Boolean(parseInt(firmado)) ?
                                     '<span class="badge bg-success">Sí</span>' :
                                     '<span class="badge bg-secondary">No</span>';
                             }
@@ -204,7 +205,7 @@
                             orderable: false,
                             render: function(data) {
                                 const isActivo = data.receta_lote_estado == 1;
-                                const isFirmado = data.receta_lote_firmado;
+                                const isFirmado = Boolean(parseInt(data.receta_lote_firmado));
 
                                 return `
             <div class="d-flex gap-1">

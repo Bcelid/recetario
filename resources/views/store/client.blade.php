@@ -132,7 +132,8 @@
                 <!-- Footer del Modal -->
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success"  id="btnImportarClientes" form="importarClientesForm">Importar</button>
+                    <button type="submit" class="btn btn-success" id="btnImportarClientes"
+                        form="importarClientesForm">Importar</button>
                 </div>
 
             </div>
@@ -382,13 +383,27 @@
                     },
                     error: function(xhr) {
                         var errorMsg = 'Error al importar los clientes';
-                        if (xhr.responseJSON && xhr.responseJSON.error) {
-                            errorMsg =
-                                `Error: ${xhr.responseJSON.error}\nArchivo: ${xhr.responseJSON.file}\nLínea: ${xhr.responseJSON.line}`;
+
+                        // Verificar si la respuesta contiene datos JSON con detalles del error
+                        if (xhr.responseJSON) {
+                            // Si hay un error con los detalles enviados desde el servidor
+                            if (xhr.responseJSON.error) {
+                                errorMsg = `
+                Error: ${xhr.responseJSON.error}\n
+                Archivo: ${xhr.responseJSON.file}\n
+                Línea: ${xhr.responseJSON.line}
+            `;
+                            } else if (xhr.responseJSON.message) {
+                                // Si hay un mensaje específico de validación o error de datos
+                                errorMsg = xhr.responseJSON.message . xhr.responseJSON.errores;
+                            }
                         } else {
+                            // Error general si no hay respuesta JSON
                             errorMsg =
                                 'Hubo un error al procesar la solicitud. Por favor, intenta nuevamente.';
                         }
+
+                        // Mostrar el error en un alert
                         alert(errorMsg);
                     },
                     complete: function() {

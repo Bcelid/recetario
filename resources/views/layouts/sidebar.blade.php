@@ -192,16 +192,16 @@
                         </p>
                     </a>
                     <ul class="nav nav-treeview">
-                        <li class="nav-item">
+                        <!--<li class="nav-item">
                             <a href="{{ route('prescription.newprescription') }}" class="nav-link text-white ps-4">
                                 <i class="fa-solid fa-file-circle-plus nav-icon"></i>
                                 <p>Nueva Receta</p>
                             </a>
-                        </li>
+                        </li>-->
                         <li class="nav-item">
                             <a href="{{ route('prescription.newprescriptionv1') }}" class="nav-link text-white ps-4">
                                 <i class="fa-solid fa-file-circle-plus nav-icon"></i>
-                                <p>Nueva Receta V1</p>
+                                <p>Nueva Receta</p>
                             </a>
                         </li>
                         <li class="nav-item">

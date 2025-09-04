@@ -159,20 +159,43 @@ class ClienteController extends Controller
 
         $clientesYaRegistrados = [];
         $clientesDuplicados = [];
+        $errores = [];
 
         try {
+            // Cargar el archivo Excel
             $spreadsheet = IOFactory::load($file);
             $sheet = $spreadsheet->getActiveSheet();
             $rows = $sheet->toArray();
 
+            if (empty($rows) || count($rows) == 1) {
+                return response()->json([
+                    'message' => 'El archivo está vacío o solo contiene encabezados.',
+                ], 400);
+            }
+
             foreach ($rows as $index => $row) {
                 if ($index == 0) continue; // Ignorar la fila de encabezados
 
+                // Comprobar si toda la fila está vacía
+                if (empty(array_filter($row))) {
+                    continue; // Si la fila está vacía, la saltamos
+                }
+
+                // Verificar si hay campos vacíos en la fila
+                $cedula = $row[0];
+                $nombre = $row[1];
+                $apellido = $row[2];
+
+                if (empty($cedula) || empty($nombre) || empty($apellido)) {
+                    $errores[] = "Fila " . ($index + 1) . ": Faltan campos obligatorios (Cedula, Nombre o Apellido).";
+                    continue; // Saltar esta fila
+                }
+
                 $clienteData = [
-                    'cliente_cedula'    => $row[0],
-                    'cliente_nombre'    => $row[1],
-                    'cliente_apellido'  => $row[2],
-                    'cliente_direccion' => $row[3],
+                    'cliente_cedula'    => $cedula,
+                    'cliente_nombre'    => $nombre,
+                    'cliente_apellido'  => $apellido,
+                    'cliente_direccion' => $row[3],  // Este campo es opcional
                     'cliente_estado'    => 1,
                     'cliente_almacen_id' => $request->almacen_id,
                 ];
@@ -183,12 +206,21 @@ class ClienteController extends Controller
                     ->exists();
 
                 if ($exists) {
-                    $clientesDuplicados[] = $clienteData['cliente_nombre'] .' '. $clienteData['cliente_apellido'];
+                    $clientesDuplicados[] = $clienteData['cliente_nombre'] . ' ' . $clienteData['cliente_apellido'];
                 } else {
                     // Crear el cliente si no existe
                     Cliente::create($clienteData);
-                    $clientesYaRegistrados[] = $clienteData['cliente_nombre'] .' '. $clienteData['cliente_apellido'];
+                    $clientesYaRegistrados[] = $clienteData['cliente_nombre'] . ' ' . $clienteData['cliente_apellido'];
                 }
+            }
+
+
+            // Si hay errores, devolver los mensajes correspondientes
+            if (!empty($errores)) {
+                return response()->json([
+                    'message' => 'El archivo tiene algunos errores.',
+                    'errores' => $errores,
+                ], 400);
             }
 
             return response()->json([

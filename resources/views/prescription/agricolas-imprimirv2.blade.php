@@ -87,35 +87,35 @@
         <div class="mini">
             <div class="header">
                 <table class="no-border">
-                    <tr>
-                        <td style="width: 30%; text-align: center;">
-                            <img src="{{ public_path('img/AGROCALIDAD.png') }}" class="logo" alt="Logo 1"><br>
-                            <img src="{{ public_path('img/logo-agropecuario.jpg') }}" class="logo" alt="Logo 2">
-                        </td>
-                        <td style="width: 40%; text-align: center; font-size: 12px;">
-                            <strong>REPRESENTACIONES TÉCNICAS PARA ALMACENISTA AGROPECUARIOS</strong><br>
-                            ING. AGRÓNOMO - SENESCYT {{ $recetaLote->tecnico->tecnico_senescyt ?? '' }}<br>
-                            {{ $recetaLote->tecnico->tecnico_apellido }} {{ $recetaLote->tecnico->tecnico_nombre }} <br>
-                            C.I.: {{ $recetaLote->tecnico->tecnido_cedula }}<br>
-                            TELÉFONO: {{ $recetaLote->tecnico->tecnico_telefono }}<br>
-                            <strong>RECETA AGRICOLA PARA EXPENDIO DE PLAGUICIDAS</strong>
-                        </td>
-                        <td style="width: 30%; text-align: center;">
-                            <div>
-                                <img src="{{ $recetaLote->almacen->almacen_logo
-                                    ? public_path('storage/' . $recetaLote->almacen->almacen_logo)
-                                    : public_path('img/sin_logo.png') }}"
-                                    class="logo mt-2px" alt="Logo Almacén"
-                                    style="max-height: 80px; display: block; margin: 0 auto;">
+    <tr>
+        <td style="width: 30%; text-align: center;">
+            <img src="{{ url('img/AGROCALIDAD.png') }}" class="logo" alt="Logo 1"><br>
+            <img src="{{ url('img/logo-agropecuario.jpg') }}" class="logo" alt="Logo 2">
+        </td>
+        <td style="width: 40%; text-align: center; font-size: 12px;">
+            <strong>REPRESENTACIONES TÉCNICAS PARA ALMACENISTA AGROPECUARIOS</strong><br>
+            ING. AGRÓNOMO - SENESCYT {{ $recetaLote->tecnico->tecnico_senescyt ?? '' }}<br>
+            {{ $recetaLote->tecnico->tecnico_apellido }} {{ $recetaLote->tecnico->tecnico_nombre }} <br>
+            C.I.: {{ $recetaLote->tecnico->tecnido_cedula }}<br>
+            TELÉFONO: {{ $recetaLote->tecnico->tecnico_telefono }}<br>
+            <strong>RECETA AGRICOLA PARA EXPENDIO DE PLAGUICIDAS</strong>
+        </td>
+        <td style="width: 30%; text-align: center;">
+            <div>
+                <img src="{{ $recetaLote->almacen->almacen_logo
+                    ? url('storage/' . $recetaLote->almacen->almacen_logo)
+                    : url('img/sin_logo.png') }}"
+                    class="logo mt-2px" alt="Logo Almacén"
+                    style="max-height: 80px; display: block; margin: 0 auto;">
 
-                                <div>
-                                    <h2><strong style="color: red;">NO. {{ $receta->receta_numero }}</strong></h2>
-                                </div>
-                            </div>
-                        </td>
+                <div>
+                    <h2><strong style="color: red;">NO. {{ $receta->receta_numero }}</strong></h2>
+                </div>
+            </div>
+        </td>
+    </tr>
+</table>
 
-                    </tr>
-                </table>
             </div>
 
             <div class="section">

@@ -84,8 +84,8 @@
                 <table class="no-border">
                     <tr>
                         <td style="width: 30%; text-align: center;">
-                            <img src="{{ public_path('img/AGROCALIDAD.png') }}" class="logo" alt="Logo 1"><br>
-                            <img src="{{ public_path('img/logo-veterinaria.jpg') }}" class="logo" alt="Logo 2">
+                            <img src="{{ url('img/AGROCALIDAD.png') }}" class="logo" alt="Logo 1"><br>
+                            <img src="{{ url('img/logo-veterinaria.jpg') }}" class="logo" alt="Logo 2">
                         </td>
                         <td style="width: 40%; text-align: center; font-size: 12px;">
                             <strong>REPRESENTACIONES TÉCNICAS PARA ALMACENISTA AGROPECUARIOS</strong><br>
@@ -97,7 +97,7 @@
                         </td>
                         <td style="width: 30%; text-align: center;">
                             <div>
-                                <img src="{{ $recetaLote->almacen->almacen_logo ? public_path('storage/' . $recetaLote->almacen->almacen_logo) : public_path('img/sin_logo.png') }}"
+                                <img src="{{ $recetaLote->almacen->almacen_logo ? url('storage/' . $recetaLote->almacen->almacen_logo) : url('img/sin_logo.png') }}"
                                     class="logo mt-2px" alt="Logo Almacén"
                                     style="max-height: 80px; display: block; margin: 0 auto;">
                                 <div>
@@ -232,7 +232,7 @@
                             </tr>
                             @php $i++; @endphp
                         @endforeach
-                        @for (; $i <= 6; $i++)
+                        @for (; $i <= 5; $i++)
                             <tr>
                                 <td>{{ $i }}</td>
                                 <td>-</td>
