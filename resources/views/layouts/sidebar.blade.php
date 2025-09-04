@@ -9,68 +9,77 @@
     <div class="sidebar-wrapper">
         <nav class="mt-2">
             <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
-
+                
                 <!-- Técnico -->
-                <li class="nav-item">
-                    <a href="#" class="nav-link text-white">
-                        <i class="nav-icon fa-solid fa-user-tie"></i>
-                        <p>
-                            Técnico
-                            <i class="nav-arrow fa-solid fa-chevron-right"></i>
-                        </p>
-                    </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="{{ route('technical.index') }}" class="nav-link text-white ps-4">
-                                <i class="fa-solid fa-user nav-icon"></i>
-                                <p>Listado</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ route('technical.categories') }}" class="nav-link text-white ps-4">
-                                <i class="fa-solid fa-layer-group nav-icon"></i>
-                                <p>Categoría</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ route('technical.signature') }}" class="nav-link text-white ps-4">
-                                <i class="fa-solid fa-pen nav-icon"></i>
-                                <p>Firma Electrónica</p>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
+                @unless (Auth::user()->role->name === 'usuario')
+                    <li class="nav-item">
+                        <a href="#" class="nav-link text-white">
+                            <i class="nav-icon fa-solid fa-user-tie"></i>
+                            <p>
+                                Técnico
+                                <i class="nav-arrow fa-solid fa-chevron-right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{{ route('technical.index') }}" class="nav-link text-white ps-4">
+                                    <i class="fa-solid fa-user nav-icon"></i>
+                                    <p>Listado</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('technical.categories') }}" class="nav-link text-white ps-4">
+                                    <i class="fa-solid fa-layer-group nav-icon"></i>
+                                    <p>Categoría</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('technical.signature') }}" class="nav-link text-white ps-4">
+                                    <i class="fa-solid fa-pen nav-icon"></i>
+                                    <p>Firma Electrónica</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endunless
 
                 <!-- Almacén -->
-                <li class="nav-item">
-                    <a href="#" class="nav-link text-white">
-                        <i class="nav-icon fa-solid fa-store"></i>
-                        <p>
-                            Almacén
-                            <i class="nav-arrow fa-solid fa-chevron-right"></i>
-                        </p>
-                    </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="{{ route('store.storeboss') }}" class="nav-link text-white ps-4">
-                                <i class="fa-solid fa-user nav-icon"></i>
-                                <p>Propietario</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ route('store.index') }}" class="nav-link text-white ps-4">
-                                <i class="fa-solid fa-store nav-icon"></i>
-                                <p>Almacén</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ route('store.client') }}" class="nav-link text-white ps-4">
-                                <i class="fa-solid fa-user-check nav-icon"></i>
-                                <p>Cliente</p>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
+                @unless (Auth::user()->role->name === 'usuario')
+                    <li class="nav-item">
+                        <a href="#" class="nav-link text-white">
+                            <i class="nav-icon fa-solid fa-store"></i>
+                            <p>
+                                Almacén
+                                <i class="nav-arrow fa-solid fa-chevron-right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{{ route('store.storeboss') }}" class="nav-link text-white ps-4">
+                                    <i class="fa-solid fa-user nav-icon"></i>
+                                    <p>Propietario</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('store.index') }}" class="nav-link text-white ps-4">
+                                    <i class="fa-solid fa-store nav-icon"></i>
+                                    <p>Almacén</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('store.client') }}" class="nav-link text-white ps-4">
+                                    <i class="fa-solid fa-user-check nav-icon"></i>
+                                    <p>Cliente</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endunless
+
+                
+
+
+                
 
                 <!-- Cultivo -->
                 <li class="nav-item">
@@ -164,19 +173,19 @@
                         </li>
                         <li class="nav-item">
                             <a href="{{ route('settings.dosageunit') }}" class="nav-link text-white ps-4">
-                               <i class="fa-solid fa-scale-balanced nav-icon"></i>
+                                <i class="fa-solid fa-scale-balanced nav-icon"></i>
                                 <p>Medida Dosificación</p>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="{{ route('settings.formulation') }}" class="nav-link text-white ps-4">
-                               <i class="fa-solid fa-soap nav-icon"></i>
+                                <i class="fa-solid fa-soap nav-icon"></i>
                                 <p>Formulacion</p>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="{{ route('correo.config') }}" class="nav-link text-white ps-4">
-                               <i class="fa-solid fa-envelope nav-icon"></i>
+                                <i class="fa-solid fa-envelope nav-icon"></i>
                                 <p>Correo</p>
                             </a>
                         </li>
@@ -192,33 +201,35 @@
                         </p>
                     </a>
                     <ul class="nav nav-treeview">
-                        <li class="nav-item">
+                        <!--<li class="nav-item">
                             <a href="{{ route('prescription.newprescription') }}" class="nav-link text-white ps-4">
+                                <i class="fa-solid fa-file-circle-plus nav-icon"></i>
+                                <p>Nueva Receta</p>
+                            </a>
+                        </li>-->
+                        <li class="nav-item">
+                            <a href="{{ route('prescription.newprescriptionv1') }}" class="nav-link text-white ps-4">
                                 <i class="fa-solid fa-file-circle-plus nav-icon"></i>
                                 <p>Nueva Receta</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ route('prescription.newprescriptionv1') }}" class="nav-link text-white ps-4">
-                                <i class="fa-solid fa-file-circle-plus nav-icon"></i>
-                                <p>Nueva Receta V1</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
                             <a href="{{ route('prescription.list_prescription') }}" class="nav-link text-white ps-4">
-                               <i class="fa-solid fa-file-prescription nav-icon"></i>
+                                <i class="fa-solid fa-file-prescription nav-icon"></i>
                                 <p>Lote de Recetas</p>
                             </a>
                         </li>
                     </ul>
                 </li>
                 <!-- Usuario -->
-                <li class="nav-item">
-                    <a href="{{ route('users.index') }}" class="nav-link text-white">
-                        <i class="fa-solid fa-user nav-icon"></i>
-                        <p>Usuario</p>
-                    </a>
-                </li>
+                @unless (Auth::user()->role->name === 'usuario')
+                    <li class="nav-item">
+                        <a href="{{ route('users.index') }}" class="nav-link text-white">
+                            <i class="fa-solid fa-user nav-icon"></i>
+                            <p>Usuario</p>
+                        </a>
+                    </li>
+                @endunless
 
             </ul>
         </nav>

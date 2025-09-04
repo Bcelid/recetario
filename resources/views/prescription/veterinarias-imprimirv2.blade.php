@@ -123,7 +123,19 @@
                         <td>DIRECCIÓN:</td>
                         <td>{{ $recetaLote->almacen->almacen_direccion ?? '' }}</td>
                         <td>PROPIETARIO:</td>
-                        <td>{{ $recetaLote->almacen->propietario->propietario_almacen_nombre ?? '' }}</td>
+                        <td>{{ $recetaLote->almacen->propietario->propietario_almacen_nombre ?? '' }} {{ $recetaLote->almacen->propietario->propietario_almacen_apellido ?? '' }}</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="section">
+                <div class="title">INFORMACIÓN DE CLIENTE</div>
+                <table>
+                    <tr>
+                        <td style="width: 25%;">CLIENTE:</td>
+                        <td style="width: 25%;">{{ $cliente->cliente_nombre }} {{ $cliente->cliente_apellido }}</td>
+                        <td style="width: 20%;">DIRECCIÓN:</td>
+                        <td style="width: 25%;">{{ $cliente->cliente_direccion }}</td>
                     </tr>
                 </table>
             </div>
@@ -180,7 +192,7 @@
                                             ($ing->unidadMedida->unidad_medida_detalle ?? '') .
                                             ')';
                                     })
-                                    ->implode(', ');
+                                    ->implode(' + ');
                             @endphp
                             <tr>
                                 <td>{{ $i }}</td>

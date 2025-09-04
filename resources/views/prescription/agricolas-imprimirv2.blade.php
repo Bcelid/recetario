@@ -124,7 +124,7 @@
                     <tr>
                         <td style="width: 25%;">PROPIETARIO:</td>
                         <td style="width: 25%;">
-                            {{ $recetaLote->almacen->propietario->propietario_almacen_nombre ?? '' }}</td>
+                            {{ $recetaLote->almacen->propietario->propietario_almacen_nombre ?? '' }} {{ $recetaLote->almacen->propietario->propietario_almacen_apellido ?? '' }}</td>
                         <td style="width: 20%;">ALMACÉN:</td>
                         <td style="width: 25%;">{{ $recetaLote->almacen->almacen_nombre ?? '' }}</td>
                     </tr>
@@ -138,10 +138,10 @@
             </div>
 
             <div class="section">
-                <div class="title">INFORMACIÓN DE CULTIVO</div>
+                <div class="title">INFORMACIÓN DE CLIENTE</div>
                 <table>
                     <tr>
-                        <td style="width: 25%;">PROPIETARIO:</td>
+                        <td style="width: 25%;">CLIENTE:</td>
                         <td style="width: 25%;">{{ $cliente->cliente_nombre }} {{ $cliente->cliente_apellido }}</td>
                         <td style="width: 20%;">DIRECCIÓN:</td>
                         <td style="width: 25%;">{{ $cliente->cliente_direccion }}</td>
@@ -186,7 +186,7 @@
                                             ' ' .
                                             ($ing->unidadMedida->unidad_medida_detalle ?? '');
                                     })
-                                    ->implode(', ');
+                                    ->implode(' + ');
                             @endphp
                             <tr>
                                 <td>{{ $dosificacion->cultivo->cultivo_nombre ?? '-' }}</td>
