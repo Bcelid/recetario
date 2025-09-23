@@ -159,9 +159,6 @@
                 <button type="submit" class="btn btn-primary">Guardar Producto</button>
             </div>
         </form>
-
-        
-
     </div>
 @endsection
 
@@ -239,7 +236,10 @@
     <td class="dosis-col">
         <select class="form-select select-unidad-dosificacion" style="width: 100%"></select>
     </td>
-    <td><input class="form-control" placeholder="Aplicación" /></td>
+    <td>
+    <textarea class="form-control" placeholder="Aplicación" rows="2"></textarea>
+</td>
+
     <td><button type="button" class="btn btn-danger btn-sm btn-remove">Eliminar</button></td>
 </tr>
 `;

@@ -3,255 +3,457 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Recetas Agrícolas</title>
+    <title>Hoja A4 en 2 partes</title>
     <style>
-        @page {
-            size: A4 landscape;
-            margin: 5mm;
-        }
-
-
         body {
-            font-family: Arial, sans-serif;
-            font-size: 12px;
             margin: 0;
             padding: 0;
+            font-family: Arial, sans-serif;
+            font-size: 9pt;
         }
 
-        .mini {
-            padding: 4px;
+        /* Página A4 en mm (landscape) */
+        .page {
+            width: 270mm;
+            height: 180mm;
+            box-sizing: border-box;
+            page-break-after: always;
         }
 
+        .page-table {
+            width: 100%;
+            height: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
 
-        .header,
-        .section,
-        .footer {
-            border: 1px solid #000;
-            padding: 5px;
-            margin-bottom: 5px;
+        .page-cell {
+            width: 50%;
+            vertical-align: top;
+            padding: 2mm;
+            box-sizing: border-box;
+            border-right: 1px solid #000;
+        }
+
+        .page-cell:last-child {
+            border-right: none;
         }
 
         .title {
             text-align: center;
             font-weight: bold;
-            font-size: 12px;
-            background: #d6eaf8;
-            margin-bottom: 4px;
+            margin-bottom: 5px;
         }
 
-        table {
+        .logo-block {
+            text-align: center;
+            padding: 5px;
+        }
+
+        .logo-block img {
+            max-height: 35px;
+            display: block;
+            margin: 0 auto 5px auto;
+        }
+
+        .table-fecha {
             width: 100%;
             border-collapse: collapse;
+            font-size: 12px;
         }
 
-        td,
-        th {
+        .table-fecha td {
             border: 1px solid #000;
-            padding: 6px;
-            vertical-align: top;
-            font-size: 10px;
-            word-wrap: break-word;
-        }
-
-        .no-border td {
-            border: none;
-            padding: 4px;
-        }
-
-        .firma-sello {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-        }
-
-        .firma-sello div {
-            width: 100%;
+            padding: 3px;
             text-align: center;
         }
 
-        img.logo {
-            height: 50px;
+        .receta-numero {
             margin-top: 5px;
-            object-fit: contain;
+            padding: 5px;
+            font-weight: bold;
+            color: red;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .encabezado {
+            width: 100%;
+            height: auto;
+            border: 1px solid #000;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+
+        .encabezado-sinborder {
+            width: 100%;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+
+        .text-center {
+            text-align: center;
         }
     </style>
 </head>
 
 <body>
-
     @foreach ($recetaLote->recetas as $receta)
         @php
             $cliente = $receta->cliente;
+            $fecha = \Carbon\Carbon::parse($receta->fecha_emision);
         @endphp
 
-        <div class="mini">
-            <div class="header">
-                <table class="no-border">
-                    <tr>
-                        <td style="width: 30%; text-align: center;">
-                            <img src="{{ public_path('img/AGROCALIDAD.png') }}" class="logo" alt="Logo 1"><br>
-                            <img src="{{ public_path('img/logo-agropecuario.jpg') }}" class="logo" alt="Logo 2">
-                        </td>
-                        <td style="width: 40%; text-align: center; font-size: 12px;">
-                            <strong>REPRESENTACIONES TÉCNICAS PARA ALMACENISTA AGROPECUARIOS</strong><br>
-                            ING. AGRÓNOMO - SENESCYT {{ $recetaLote->tecnico->tecnico_senescyt ?? '' }}<br>
-                            {{ $recetaLote->tecnico->tecnico_apellido }} {{ $recetaLote->tecnico->tecnico_nombre }} <br>
-                            C.I.: {{ $recetaLote->tecnico->tecnido_cedula }}<br>
-                            TELÉFONO: {{ $recetaLote->tecnico->tecnico_telefono }}<br>
-                            <strong>RECETA AGRICOLA PARA EXPENDIO DE PLAGUICIDAS</strong>
-                        </td>
-                        <td style="width: 30%; text-align: center;">
-                            <div>
-                                <img src="{{ $recetaLote->almacen->almacen_logo
-                                    ? public_path('storage/' . $recetaLote->almacen->almacen_logo)
-                                    : public_path('img/sin_logo.png') }}"
-                                    class="logo mt-2px" alt="Logo Almacén"
-                                    style="max-height: 80px; display: block; margin: 0 auto;">
+        <div class="page">
+            <table class="page-table">
+                <tr>
+                    <!-- Parte Izquierda -->
+                    <td class="page-cell">
+                        <div class="encabezado-sinborder">
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <tr>
+                                    <td style="width: 60%; text-align: center; vertical-align: center;">
+                                        <table class="table-fecha">
+                                            <tr>
+                                                <td colspan="3" style="font-weight: bold;">Fecha de emisión</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Día</td>
+                                                <td>Mes</td>
+                                                <td>Año</td>
+                                            </tr>
+                                            <tr>
+                                                <td>{{ $fecha->format('d') }}</td>
+                                                <td>{{ $fecha->format('m') }}</td>
+                                                <td>{{ $fecha->format('Y') }}</td>
+                                            </tr>
+                                        </table>
+                                    </td>
 
-                                <div>
-                                    <h2><strong style="color: red;">NO. {{ $receta->receta_numero }}</strong></h2>
-                                </div>
-                            </div>
-                        </td>
-
-                    </tr>
-                </table>
-            </div>
-
-            <div class="section">
-                <div class="title">RECETA AGRÍCOLA PARA EXPENDIO DE PLAGUICIDAS</div>
-                <table>
-                    <tr>
-                        <td style="width: 25%;">PROPIETARIO:</td>
-                        <td style="width: 25%;">
-                            {{ $recetaLote->almacen->propietario->propietario_almacen_nombre ?? '' }} {{ $recetaLote->almacen->propietario->propietario_almacen_apellido ?? '' }}</td>
-                        <td style="width: 20%;">ALMACÉN:</td>
-                        <td style="width: 25%;">{{ $recetaLote->almacen->almacen_nombre ?? '' }}</td>
-                    </tr>
-                    <tr>
-                        <td>DIRECCIÓN:</td>
-                        <td>{{ $recetaLote->almacen->almacen_direccion ?? '' }}</td>
-                        <td>FECHA:</td>
-                        <td>{{ \Carbon\Carbon::parse($receta->fecha_emision)->format('d/m/Y') }}</td>
-                    </tr>
-                </table>
-            </div>
-
-            <div class="section">
-                <div class="title">INFORMACIÓN DE CLIENTE</div>
-                <table>
-                    <tr>
-                        <td style="width: 25%;">CLIENTE:</td>
-                        <td style="width: 25%;">{{ $cliente->cliente_nombre }} {{ $cliente->cliente_apellido }}</td>
-                        <td style="width: 20%;">DIRECCIÓN:</td>
-                        <td style="width: 25%;">{{ $cliente->cliente_direccion }}</td>
-                    </tr>
-                </table>
-            </div>
-
-            <div class="section">
-                <div class="title">PRESCRIPCIÓN</div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Cultivo</th>
-                            <th>Plaga</th>
-                            <th>Forma Farmacéutica</th>
-                            <th>Formulación</th>
-                            <th>Cantidad</th>
-                            <th>Volumen a tratarse</th>
-                            <th>Principios Activos</th>
-                            <th>Recomendación</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @php
-                            $productos = $receta->productos;
-                            $totalProductos = $productos->count();
-                        @endphp
-
-                        @foreach ($productos as $detalle)
-                            @php
-                                $producto = $detalle->producto;
-                                $dosificacion = $detalle->dosificacion;
-                                $formulacion = $producto->formulacion->formulacion_nombre ?? '';
-                                $formulacion_abrev = $producto->formulacion->formulacion_abreviatura ?? '';
-                                $ingredientes = $producto->ingredientes ?? collect();
-
-                                $principios = $ingredientes
-                                    ->map(function ($ing) {
-                                        return ($ing->ingredienteActivo->ingrediente_activo_nombre ?? 'N/A') .
-                                            ' ' .
-                                            ($ing->cantidad ?? '-') .
-                                            ' ' .
-                                            ($ing->unidadMedida->unidad_medida_detalle ?? '');
-                                    })
-                                    ->implode(' + ');
-                            @endphp
-                            <tr>
-                                <td>{{ $dosificacion->cultivo->cultivo_nombre ?? '-' }}</td>
-                                <td>{{ $dosificacion->maleza->maleza_nombre ?? '-' }}</td>
-                                <td>{{ $producto->producto_nombre ?? '-' }}</td>
-                                <td>{{ $formulacion . ' (' . $formulacion_abrev . ')' }}</td>
-                                <td>{{ $detalle->producto_cantidad }}</td>
-                                <td>{{ $detalle->producto_cantidad * $dosificacion->dosis }} HA</td>
-                                <td>{{ $principios }}</td>
-                                <td>{{ $dosificacion->dosificacion_aplicacion ?? '-' }}</td>
-                            </tr>
-                        @endforeach
-
-                        {{-- Agregar filas vacías hasta llegar a 6 --}}
-                        @for ($i = $totalProductos; $i < 5; $i++)
-                            <tr>
-                                <td>-</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td>-</td>
-                            </tr>
-                        @endfor
-                    </tbody>
-
-                </table>
-            </div>
-
-            <div class="footer">
-                <table>
-                    <tr>
-                        <td colspan="2"><strong>PROFESIONAL:</strong> {{ $recetaLote->tecnico->tecnico_nombre }}
-                            {{ $recetaLote->tecnico->tecnico_apellido }}</td>
-                        <td><strong>SENESCYT:</strong> {{ $recetaLote->tecnico->tecnico_senescyt }}</td>
-                    </tr>
-                </table>
-                <div class="firma-sello">
-                    <div>
-                        @if (isset($qrImage))
-                            <img src="data:image/png;base64,{{ $qrImage }}"
-                                style="width: 80px; height: 80px;"><br>
-                        @else
-                            <img src="{{ public_path('firma-qr.png') }}" style="width: 80px; height: 80px;"><br>
-                        @endif
-                        <div style="font-size: 12px;">FIRMA</div>
-                    </div>
-
-                    @if (isset($qrImage))
-                        <div style="font-size: 10px;">
-                            <strong>{{ $recetaLote->tecnico->tecnico_nombre }}
-                                {{ $recetaLote->tecnico->tecnico_apellido }}</strong><br>
-                            {{ $recetaLote->tecnico->categoria->tecnico_categoria_nombre ?? 'Sin categoría' }}<br>
-                            Fecha: {{ \Carbon\Carbon::now()->format('d/m/Y') }}
+                                    <td style="width: 40%; text-align: center; vertical-align: top;">
+                                        <img src="{{ $recetaLote->almacen->almacen_logo
+                                            ? url('storage/' . $recetaLote->almacen->almacen_logo)
+                                            : url('img/sin_logo.png') }}"
+                                            alt="Logo Almacén"
+                                            style="max-height: 50px; display: block; margin: 0 auto;">
+                                        <div class="receta-numero">N. {{ $receta->receta_numero }}</div>
+                                    </td>
+                                </tr>
+                            </table>
                         </div>
-                    @endif
-                </div>
 
-            </div>
+                        <div class="encabezado-sinborder">
+                            <table style="width: 100%; border-collapse: collapse; font-size:9pt;">
+                                <tr style="background-color: #e0e0e0; font-weight: bold;">
+                                    <td style="border: 1px solid #000; padding: 4px;" colspan="2">
+                                        Información del profesional que prescribe:
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 4px; width: 30%;">Nombres y apellidos:
+                                    </td>
+                                    <td style="border: 1px solid #000; padding: 4px; width: 70%;">
+                                        {{ $recetaLote->tecnico->tecnico_apellido }}
+                                        {{ $recetaLote->tecnico->tecnico_nombre }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 4px;">Cédula de identidad:</td>
+                                    <td style="border: 1px solid #000; padding: 4px;">
+                                        {{ $recetaLote->tecnico->tecnido_cedula }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 4px;">N° Registro SENESCYT:</td>
+                                    <td style="border: 1px solid #000; padding: 4px;">
+                                        {{ $recetaLote->tecnico->tecnico_senescyt ?? '' }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 4px;">Teléfono:</td>
+                                    <td style="border: 1px solid #000; padding: 4px;">
+                                        {{ $recetaLote->tecnico->tecnico_telefono }}
+                                    </td>
+                                </tr>
+                                <tr style="background-color: #e0e0e0; font-weight: bold;">
+                                    <td style="border: 1px solid #000; padding: 4px;" colspan="2">
+                                        Información del Almacen:
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 4px;">Almacen:</td>
+                                    <td style="border: 1px solid #000; padding: 4px;">
+                                        {{ $recetaLote->almacen->almacen_nombre ?? '' }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 4px;">Direccion:</td>
+                                    <td style="border: 1px solid #000; padding: 4px;">
+                                        {{ $recetaLote->almacen->almacen_direccion ?? '' }}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
 
+                        <div class="encabezado-final">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 9pt;">
+                                <tr style="background-color: #e0e0e0; font-weight: bold;">
+                                    <td style="border: 1px solid #000; padding: 2px;" colspan="4">
+                                        Prescripción
+                                        (Forma farmaceutica, principio activo, concentración, unidad, formulación;
+                                        incluir
+                                        cultivo,
+                                        plaga, dosis y volumen/área a tratarse)
+                                    </td>
+                                </tr>
+
+                                @php
+                                    $productos = $receta->productos;
+                                @endphp
+                                <td style="
+    border: 1px solid #000;
+    height: 120px;
+    vertical-align: top;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    overflow: hidden;
+    padding: 2px 2px 2px 10px;"
+                                    colspan="4">
+                                    @for ($i = 0; $i < 3; $i++)
+                                        @if (isset($productos[$i]))
+                                            @php
+                                                $detalle = $productos[$i];
+                                                $producto = $detalle->producto;
+                                                $dosificacion = $detalle->dosificacion;
+                                                $formulacion = $producto->formulacion->formulacion_nombre ?? '';
+                                                $formulacion_abrev =
+                                                    $producto->formulacion->formulacion_abreviatura ?? '';
+                                                $ingredientes = $producto->ingredientes ?? collect();
+                                                $cultivo = $dosificacion->cultivo->cultivo_nombre ?? '-';
+                                                $maleza = $dosificacion->maleza->maleza_nombre ?? '-';
+                                                $principios = $ingredientes
+                                                    ->map(function ($ing) {
+                                                        return ($ing->ingredienteActivo->ingrediente_activo_nombre ??
+                                                            'N/A') .
+                                                            ' ' .
+                                                            ($ing->cantidad ?? '-') .
+                                                            ' ' .
+                                                            ($ing->unidadMedida->unidad_medida_detalle ?? '');
+                                                    })
+                                                    ->implode(', ');
+
+                                                $texto = $dosificacion->dosificacion_aplicacion ?? '-';
+                                                $partes = explode('//', $texto);
+
+                                                if (count($partes) > 1) {
+                                                    $cuerpo1 = trim($partes[0]);
+                                                    $cuerpo2 = trim($partes[1]);
+                                                } else {
+                                                    $cuerpo1 = $cuerpo2 = trim($texto);
+                                                }
+                                            @endphp
+                                            <br>
+                                            <strong>{{ $i + 1 }})</strong>
+                                            {{ round($detalle->producto_cantidad) }} {{ $producto->producto_nombre }}
+                                            {{ $producto->producto_concentracion }}
+                                            {{ fmod($producto->producto_presentacion, 1) == 0
+                                                ? number_format($producto->producto_presentacion, 0)
+                                                : number_format($producto->producto_presentacion, 1) }}
+                                            {{ $producto->unidadMedida->unidad_medida_detalle ?? '' }}
+                                            {{ $formulacion . ' (' . $formulacion_abrev . ')' }}
+                                            {{ $detalle->producto_cantidad * $dosificacion->dosis }}HA
+                                            {{ $cultivo }} - {{ $maleza }}
+                                            {{ $cuerpo1 ?? '-' }} - Principio(s)
+                                            Activo(s): {{ $principios }}<br>
+                                        @else
+                                            <strong>{{ $i + 1 }})</strong> -<br>
+                                        @endif
+                                    @endfor
+                                </td>
+
+
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 4px; height: 80px; text-align: center; vertical-align: middle;"
+                                        colspan="4">
+                                        <div style="display: inline-block; text-align: center;">
+                                            @if (isset($qrImage))
+                                                <img src="data:image/png;base64,{{ $qrImage }}"
+                                                    style="width: 60px; height: 60px;"><br>
+                                            @else
+                                                <img src="{{ public_path('firma-qr.png') }}"
+                                                    style="width: 60px; height: 60px;"><br>
+                                            @endif
+                                            @if (isset($qrImage))
+                                                <div style="font-size: 10px;">
+                                                    <strong>{{ $recetaLote->tecnico->tecnico_nombre }}
+                                                        {{ $recetaLote->tecnico->tecnico_apellido }}</strong><br>
+                                                    {{ $recetaLote->tecnico->categoria->tecnico_categoria_nombre ?? 'Sin categoría' }}<br>
+                                                    Fecha: {{ \Carbon\Carbon::now()->format('d/m/Y') }}
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                            <p class="text-center"><strong>Cuerpo 1 original: Almacenista</strong></p>
+                        </div>
+                    </td>
+
+                    <!-- Parte Derecha -->
+                    <td class="page-cell">
+                        <div class="encabezado-sinborder">
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <tr>
+                                    <td style="width: 60%; text-align: center; vertical-align: center;">
+                                        <table class="table-fecha">
+                                            <tr>
+                                                <td colspan="3" style="font-weight: bold;">Fecha de emisión</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Día</td>
+                                                <td>Mes</td>
+                                                <td>Año</td>
+                                            </tr>
+                                            <tr>
+                                                <td>{{ $fecha->format('d') }}</td>
+                                                <td>{{ $fecha->format('m') }}</td>
+                                                <td>{{ $fecha->format('Y') }}</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+
+                                    <td style="width: 40%; text-align: center; vertical-align: top;">
+                                        <img src="{{ $recetaLote->almacen->almacen_logo
+                                            ? url('storage/' . $recetaLote->almacen->almacen_logo)
+                                            : url('img/sin_logo.png') }}"
+                                            alt="Logo Almacén"
+                                            style="max-height: 50px; display: block; margin: 0 auto;">
+                                        <div class="receta-numero">N. {{ $receta->receta_numero }}</div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div class="encabezado-sinborder">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 9pt;">
+                                <tr style="background-color: #e0e0e0; font-weight: bold;">
+                                    <td style="border: 1px solid #000; padding: 2px;" colspan="2">
+                                        Información del cultivo:
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 4px; width: 30%;">Cultivo a tratar y
+                                        área de cultivo</td>
+                                    @php
+                                        $productos = $receta->productos;
+                                    @endphp
+                                    <td style="border: 1px solid #000; padding: 4px; width: 70%;">
+                                        @for ($i = 0; $i < 3; $i++)
+                                            @if (isset($productos[$i]))
+                                                @php
+                                                    $dosificacion = $productos[$i]->dosificacion;
+                                                    $cultivo = $dosificacion->cultivo->cultivo_nombre ?? '-';
+                                                    $maleza = $dosificacion->maleza->maleza_nombre ?? '-';
+                                                @endphp
+                                                <strong>{{ $i + 1 }})</strong> {{ $cultivo }} -
+                                                {{ $maleza }}<br>
+                                            @else
+                                                <strong>{{ $i + 1 }})</strong> -<br>
+                                            @endif
+                                        @endfor
+                                    </td>
+
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 4px;">Nombre del propietario:</td>
+                                    <td style="border: 1px solid #000; padding: 4px;">
+                                        {{ $cliente->cliente_nombre }} {{ $cliente->cliente_apellido }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 4px;">Dirección del propietario:</td>
+                                    <td style="border: 1px solid #000; padding: 4px;">
+                                        {{ $cliente->cliente_direccion }}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div class="encabezado-sinborder">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 9pt;">
+                                <tr style="background-color: #e0e0e0; font-weight: bold;">
+                                    <td style="border: 1px solid #000; padding: 4px;" colspan="4">
+                                        Indicaciones
+                                        <br>(Dosis, aplicación, frecuencia):
+                                    </td>
+                                </tr>
+
+                                @php
+                                    $productos = $receta->productos;
+                                @endphp
+                                <td style="border: 1px solid #000;
+    height: 120px;
+    vertical-align: top;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    overflow: hidden;
+    padding: 2px 2px 2px 10px;"
+                                    colspan="4">
+
+                                    @for ($i = 0; $i < 3; $i++)
+                                        @if (isset($productos[$i]))
+                                            @php
+                                                $dosificacion = $productos[$i]->dosificacion;
+                                                $texto = $dosificacion->dosificacion_aplicacion ?? '-';
+                                                $partes = explode('//', $texto);
+
+                                                if (count($partes) > 1) {
+                                                    $cuerpo1 = trim($partes[0]);
+                                                    $cuerpo2 = trim($partes[1]);
+                                                } else {
+                                                    $cuerpo1 = $cuerpo2 = trim($texto);
+                                                }
+                                            @endphp
+                                            <br>
+                                            <strong>{{ $i + 1 }})</strong>
+                                            {{ $cuerpo2 ?? '-' }}<br>
+                                        @else
+                                            <strong>{{ $i + 1 }})</strong> -<br>
+                                        @endif
+                                    @endfor
+                                </td>
+
+
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 4px; height: 80px; text-align: center; vertical-align: middle;"
+                                        colspan="4">
+                                        <div style="display: inline-block; text-align: center;">
+                                            @if (isset($qrImage))
+                                                <img src="data:image/png;base64,{{ $qrImage }}"
+                                                    style="width: 60px; height: 60px;"><br>
+                                            @else
+                                                <img src="{{ public_path('firma-qr.png') }}"
+                                                    style="width: 60px; height: 60px;"><br>
+                                            @endif
+                                            @if (isset($qrImage))
+                                                <div style="font-size: 10px;">
+                                                    <strong>{{ $recetaLote->tecnico->tecnico_nombre }}
+                                                        {{ $recetaLote->tecnico->tecnico_apellido }}</strong><br>
+                                                    {{ $recetaLote->tecnico->categoria->tecnico_categoria_nombre ?? 'Sin categoría' }}<br>
+                                                    Fecha: {{ \Carbon\Carbon::now()->format('d/m/Y') }}
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                            <p class="text-center"><strong>Cuerpo 2: Propietario del animal</strong></p>
+                        </div>
+                    </td>
+                </tr>
+            </table>
         </div>
     @endforeach
-
 </body>
 
 </html>

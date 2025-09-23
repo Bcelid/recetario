@@ -8,6 +8,7 @@ use App\Models\Receta;
 use App\Models\Cliente;
 use App\Models\Dosificacion;
 use App\Models\RecetaProducto;
+use App\Models\Producto;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
@@ -21,6 +22,8 @@ use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevelLow;
 use Endroid\QrCode\Label\Label;
 use Endroid\QrCode\Label\Font\NotoSans;
 
+use TCPDF;
+use setasign\Fpdi\Tcpdf\Fpdi;
 
 
 class PrescriptionController extends Controller
@@ -334,11 +337,20 @@ class PrescriptionController extends Controller
                     $productoId = $productoInput['producto_id'];
                     $cantidad = floatval($productoInput['producto_cantidad']);
 
+                    // Obtenemos el producto para mostrar nombre y concentración
+                    $producto = Producto::find($productoId);
+
+                    if (!$producto) {
+                        return response()->json([
+                            'error' => "Producto con ID $productoId no encontrado."
+                        ], 400);
+                    }
+
                     // Verificamos dosificación
                     $dosificaciones = Dosificacion::where('producto_id', $productoId)->pluck('dosificacion_id')->toArray();
                     if (empty($dosificaciones)) {
                         return response()->json([
-                            'error' => "El producto ID $productoId no tiene dosificaciones asociadas."
+                            'error' => "El producto {$producto->producto_nombre} {$producto->producto_concentracion} no tiene dosificaciones asociadas."
                         ], 400);
                     }
 
@@ -356,7 +368,6 @@ class PrescriptionController extends Controller
 
 
             DB::commit();
-
             // Generar PDF
             if ($request->receta_tipo == 0) {
                 $recetaLote->load([
@@ -371,7 +382,7 @@ class PrescriptionController extends Controller
                 ]);
 
                 $pdf = Pdf::loadView('prescription.agricolas-imprimirv2', compact('recetaLote'))
-                    ->setPaper('A4', 'portrait');
+                    ->setPaper('A4', 'landscape');
 
                 $path = 'recetas/lote_' . $recetaLote->receta_lote_id . '.pdf';
                 Storage::disk('public')->put($path, $pdf->output());
@@ -415,22 +426,22 @@ class PrescriptionController extends Controller
 
     public function imprimirRecetasAgricolas($loteId)
     {
-        $recetaLote = RecetaLote::with([
-            'almacen.propietario',
-            'tecnico',
-            'recetas.producto.formulacion',
-            'recetas.producto.ingredientes.ingredienteActivo',
-            'recetas.dosificacion.cultivo',
-            'recetas.dosificacion.maleza',
-            'recetas.dosificacion.subespecie',
-            'recetas.dosificacion.unidadMedidaDosificacion',
-            'recetas.cliente'
-        ])
-            ->where('receta_lote_id', $loteId)
-            ->where('receta_tipo', 0) // Solo agrícolas
-            ->firstOrFail();
+        //$recetaLote = RecetaLote::with([
+        //    'almacen.propietario',
+        //    'tecnico',
+        //    'recetas.producto.formulacion',
+        //    'recetas.producto.ingredientes.ingredienteActivo',
+        //    'recetas.dosificacion.cultivo',
+        //    'recetas.dosificacion.maleza',
+        //    'recetas.dosificacion.subespecie',
+        //    'recetas.dosificacion.unidadMedidaDosificacion',
+        //    'recetas.cliente'
+        //])
+        //    ->where('receta_lote_id', $loteId)
+        //    ->where('receta_tipo', 0) // Solo agrícolas
+        //    ->firstOrFail();
 
-        return view('prescription.agricolas-imprimir', compact('recetaLote'));
+        return view('prescription.recetaagricola');
     }
 
     public function destroy($id)
@@ -453,7 +464,51 @@ class PrescriptionController extends Controller
         $recetaLote = RecetaLote::with('tecnico.categoria')->findOrFail($id);
         $tecnico = $recetaLote->tecnico;
 
+        // Verificar que el técnico tenga una firma digital registrada y activa
+        $firmaActiva = $tecnico->firmas()
+            ->where('tecnico_firma_estado', 1)
+            ->orderBy('tecnico_firma_id', 'desc')
+            ->first();
 
+        if (!$firmaActiva) {
+            return response()->json(['error' => 'El técnico no tiene una firma digital registrada o activa.'], 400);
+        }
+
+        // 1. VALIDAR CADUCIDAD DE LA FIRMA
+        $fechaExpiracion = Carbon::parse($firmaActiva->fecha_expiracion);
+        $fechaActual = Carbon::now();
+        $diasHastaExpiracion = $fechaActual->diffInDays($fechaExpiracion, false);
+
+        // 1.1. Si la firma está CADUCADA (400)
+        if ($fechaActual->gt($fechaExpiracion)) {
+            return response()->json([
+                'error' => 'FIRMA CADUCADA',
+                'message' => 'La firma digital del técnico ha caducado. Fecha de expiración: ' . $fechaExpiracion->format('d/m/Y'),
+                'fecha_expiracion' => $fechaExpiracion->format('d/m/Y'),
+                'accion' => 'Actualice la firma digital para poder firmar documentos.'
+            ], 400);
+        }
+
+        // 1.2. Si la firma está PRÓXIMA A CADUCAR (30 días o menos)
+        $alertaCaducidad = null;
+        if ($diasHastaExpiracion <= 30) {
+            $alertaCaducidad = [
+                'tipo' => 'advertencia',
+                'mensaje' => 'La firma digital caduca en ' . $diasHastaExpiracion . ' días (' . $fechaExpiracion->format('d/m/Y') . ')',
+                'dias_restantes' => $diasHastaExpiracion,
+                'fecha_expiracion' => $fechaExpiracion->format('d/m/Y'),
+                'accion_recomendada' => 'Renueve la firma digital lo antes posible'
+            ];
+        }
+
+        // Verificar que los archivos de firma existan
+        $certPath = 'file://' . storage_path('app/private/' . $firmaActiva->tecnico_firma_pub);
+        $keyPath = 'file://' . storage_path('app/private/' . $firmaActiva->tecnico_firma_key);
+        $password = $firmaActiva->tecnico_firma_clave;
+
+        if (!file_exists(str_replace('file://', '', $certPath)) || !file_exists(str_replace('file://', '', $keyPath))) {
+            return response()->json(['error' => 'Los archivos de firma digital no existen.'], 400);
+        }
 
         // Generar contenido del QR
         $qrContent = "Cédula: {$tecnico->tecnido_cedula}\n"
@@ -462,19 +517,15 @@ class PrescriptionController extends Controller
             . "SENESCYT: {$tecnico->tecnico_senescyt}\n"
             . "Categoría: {$tecnico->categoria->tecnico_categoria_nombre}";
 
-
         $result = Builder::create()
             ->writer(new PngWriter())
             ->data($qrContent)
             ->encoding(new Encoding('UTF-8'))
-
             ->size(200)
             ->margin(10)
             ->build();
 
         $qrImage = base64_encode($result->getString());
-
-
 
         // Cargar relaciones y vista según tipo de receta
         if ($recetaLote->receta_tipo == 0) { // Agrícola
@@ -489,10 +540,10 @@ class PrescriptionController extends Controller
                 'recetas.productos.dosificacion.maleza',
             ]);
 
-            $pdf = Pdf::loadView('prescription.agricolas-imprimirv2', compact('recetaLote', 'qrImage'))
-                ->setPaper('A4', 'portrait');
+            $domPdf = Pdf::loadView('prescription.agricolas-imprimirv2', compact('recetaLote', 'qrImage'))
+                ->setPaper('A4', 'landscape');
 
-            $path = 'recetas/lote_firmado_' . $recetaLote->receta_lote_id . '.pdf';
+            $relativePath = 'recetas/lote_firmado_' . $recetaLote->receta_lote_id . '.pdf';
         } elseif ($recetaLote->receta_tipo == 1) { // Veterinaria
             $recetaLote->load([
                 'almacen.propietario',
@@ -504,27 +555,71 @@ class PrescriptionController extends Controller
                 'recetas.productos.dosificacion.subespecie.especie',
             ]);
 
-            $pdf = Pdf::loadView('prescription.veterinarias-imprimirv2', compact('recetaLote', 'qrImage'))
+            $domPdf = Pdf::loadView('prescription.veterinarias-imprimirv2', compact('recetaLote', 'qrImage'))
                 ->setPaper('A4', 'landscape');
 
-            $path = 'recetas/lote_firmado_veterinario_' . $recetaLote->receta_lote_id . '.pdf';
+            $relativePath = 'recetas/lote_firmado_veterinario_' . $recetaLote->receta_lote_id . '.pdf';
         } else {
             return response()->json(['error' => 'Tipo de receta no válido.'], 400);
         }
 
-        // Guardar PDF en disco
-        Storage::disk('public')->put($path, $pdf->output());
+        // 2. Guardar archivo generado por DomPDF
+        Storage::disk('public')->put($relativePath, $domPdf->output());
 
-        // Actualizar lote
+        // 3. Obtener la ruta completa real del archivo
+        $absolutePath = storage_path('app/public/' . $relativePath);
+
+        // 4. Crear instancia de FPDI para firmar el PDF generado
+        $fpdiPdf = new Fpdi();
+
+        // 5. Importar archivo existente
+        $pageCount = $fpdiPdf->setSourceFile($absolutePath);
+        for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
+            $templateId = $fpdiPdf->importPage($pageNo);
+            $fpdiPdf->AddPage("L", 'A4'); // Landscape
+            $fpdiPdf->useTemplate($templateId);
+        }
+
+        // 6. Configurar la firma digital
+        $fpdiPdf->setSignature(
+            $certPath,                             // Certificado público (cert.pem)
+            $keyPath,                              // Clave privada (key.pem)
+            $password,                             // Contraseña
+            '',                                    // Cert chain (opcional)
+            2,                                     // Cert info
+            [
+                'Name' => $tecnico->tecnico_nombre . ' ' . $tecnico->tecnico_apellido,
+                'Location' => 'Ecuador',
+                'Reason' => 'Firma digital de receta profesional',
+                'ContactInfo' => 'Cédula: ' . $tecnico->tecnido_cedula,
+            ]
+        );
+
+        // 7. Guardar el nuevo archivo firmado sobrescribiendo el anterior
+        $pdfFirmado = $fpdiPdf->Output('', 'S');
+        Storage::disk('public')->put($relativePath, $pdfFirmado);
+
+        // 8. Actualizar la base de datos
         $recetaLote->update([
-            'receta_lote_path' => $path,
+            'receta_lote_path' => $relativePath,
             'receta_lote_firmado' => 1,
-            //'receta_lote_fecha_firma' => now(), // solo si tienes ese campo
+            'receta_lote_fecha_firma' => now(),
+            'tecnico_firma_id' => $firmaActiva->tecnico_firma_id,
         ]);
 
-        return response()->json([
+        // 9. Preparar respuesta
+        $response = [
             'message' => 'Lote firmado correctamente.',
-            'pdf_path' => $path
-        ]);
+            'pdf_path' => $relativePath,
+            'firma_valida_hasta' => $fechaExpiracion->format('d/m/Y'),
+            'dias_restantes_firma' => $diasHastaExpiracion
+        ];
+
+        // 10. Agregar alerta de caducidad si es necesario (200 con advertencia)
+        if ($alertaCaducidad) {
+            $response['alerta_caducidad'] = $alertaCaducidad;
+        }
+
+        return response()->json($response);
     }
 }

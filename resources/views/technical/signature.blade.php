@@ -34,7 +34,8 @@
     </div>
 
     <!-- Modal Crear/Editar Firma -->
-    <div class="modal fade" id="firmaModal" tabindex="-1" aria-labelledby="firmaModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal fade" id="firmaModal" tabindex="-1" aria-labelledby="firmaModalLabel" aria-hidden="true"
+        data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog">
             <form id="firmaForm" enctype="multipart/form-data">
                 <div class="modal-content">
@@ -127,6 +128,12 @@
                     dataSrc: '',
                     data: function(d) {
                         d.estado = $('#filterEstado').val();
+                    },
+                    error: function(xhr, error, thrown) {
+                        console.error('XHR:', xhr);
+                        console.error('Error:', error);
+                        console.error('Thrown:', thrown);
+                        alert('Ocurrió un error al cargar los datos. Revisa la consola.');
                     }
                 },
                 columns: [{
@@ -226,7 +233,7 @@
                 let originalContent = $btn.html(); // Guardamos el contenido original
                 $btn.prop('disabled', true).html(
                     '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Guardando...'
-                    );
+                );
 
                 let id = $('#tecnico_firma_id').val();
                 let url = id ? `/tecnico-firma/${id}` : '/tecnico-firma';
@@ -259,16 +266,23 @@
                         $btn.html(originalContent).prop('disabled', false);
 
                         if (xhr.status === 422) {
-                            let errors = xhr.responseJSON.errors;
-                            for (let field in errors) {
-                                let input = $(`[name="${field}"]`);
-                                input.addClass('is-invalid');
-                                input.next('.invalid-feedback').text(errors[field][0]);
+                            if (xhr.responseJSON.errors) {
+                                // Errores de validación de Laravel
+                                let errors = xhr.responseJSON.errors;
+                                for (let field in errors) {
+                                    let input = $(`[name="${field}"]`);
+                                    input.addClass('is-invalid');
+                                    input.next('.invalid-feedback').text(errors[field][0]);
+                                }
+                            } else if (xhr.responseJSON.message) {
+                                // Mensaje personalizado que tú mandas
+                                alert(xhr.responseJSON.message);
                             }
                         } else {
                             alert('Error en el servidor');
                         }
                     }
+
                 });
             });
 

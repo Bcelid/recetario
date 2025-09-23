@@ -30,7 +30,7 @@ class IngredienteActivoController extends Controller
             $query->where('ingrediente_activo_estado', 0);
         }
 
-        $ingredientes = $query->orderBy('ingrediente_activo_id', 'desc')->get();
+        $ingredientes = $query->orderBy('ingrediente_activo_nombre', 'asc')->get();
 
         return response()->json($ingredientes);
     }

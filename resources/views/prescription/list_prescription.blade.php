@@ -290,6 +290,14 @@
                     },
                     success: function(res) {
                         console.log('[Firmar Lote] Respuesta exitosa del servidor:', res);
+
+                        // Mostrar alerta de caducidad si existe
+                        if (res.alerta_caducidad) {
+                            alert('⚠️ ADVERTENCIA: ' + res.alerta_caducidad.mensaje +
+                                '\n\nAcción recomendada: ' + res.alerta_caducidad
+                                .accion_recomendada);
+                        }
+
                         alert(res.message || 'Lote firmado correctamente.');
                         table.ajax.reload(null, false); // Recargar sin reiniciar paginación
                     },
@@ -299,6 +307,13 @@
                         let msg = 'Error al firmar el lote.';
                         if (xhr.responseJSON && xhr.responseJSON.error) {
                             msg = xhr.responseJSON.error;
+
+                            // Mensaje específico para firma caducada
+                            if (xhr.responseJSON.error === 'FIRMA CADUCADA') {
+                                msg = '❌ FIRMA CADUCADA\n' +
+                                    xhr.responseJSON.message +
+                                    '\n\nPor favor, actualice la firma digital para continuar.';
+                            }
                         }
 
                         alert(msg);

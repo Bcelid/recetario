@@ -17,6 +17,8 @@ class TecnicoFirma extends Model
         'tecnico_firma_ruta',
         'tecnico_firma_clave',
         'tecnico_firma_estado',
+        'tecnico_firma_pub',
+        'tecnico_firma_key',
         'fecha_emision',
         'fecha_expiracion',
         'tecnico_id',

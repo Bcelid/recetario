@@ -147,8 +147,8 @@
                                                 {{ $d->subespecie->subespecie_nombre }}</option>
                                         </select></td>
                                 @endif
-                                <td><input type="text" class="form-control input-aplicacion"
-                                        value="{{ $d->dosificacion_aplicacion }}"></td>
+                                <td><textarea class="form-control input-aplicacion" placeholder="Aplicación" rows="4"  required>{{ $d->dosificacion_aplicacion }}</textarea></td>
+                                
                                 <td><button type="button" class="btn btn-danger btn-sm btn-remove">Eliminar</button></td>
                             </tr>
                         @endforeach
@@ -265,13 +265,13 @@
     <td><select class="form-select select-maleza"></select></td>
     <td><input class="form-control input-dosis" required></td>
     <td><select class="form-select select-unidad-dosificacion"></select></td>
-    <td><input class="form-control input-aplicacion" required></td>
+    <td><textarea class="form-control input-aplicacion" placeholder="Aplicación" rows="2" required></textarea></td>
     <td><button type="button" class="btn btn-danger btn-sm btn-remove">Eliminar</button></td>
 </tr>` : `
 <tr>
     <td><select class="form-select select-especie"></select></td>
     <td><select class="form-select select-subespecie"></select></td>
-    <td><input class="form-control input-aplicacion" required></td>
+    <td><textarea class="form-control input-aplicacion" placeholder="Aplicación" rows="2" required></textarea></td>
     <td><button type="button" class="btn btn-danger btn-sm btn-remove">Eliminar</button></td>
 </tr>`;
 

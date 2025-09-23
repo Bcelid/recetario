@@ -30,7 +30,7 @@ class FormulacionController extends Controller
             $query->where('formulacion_estado', 0);
         }
 
-        $formulaciones = $query->orderBy('formulacion_id', 'desc')->get();
+        $formulaciones = $query->orderBy('formulacion_nombre', 'asc')->get();
 
         return response()->json($formulaciones);
     }
