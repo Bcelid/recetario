@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PrescriptionController;
 use App\Http\Controllers\RecetaEmailController;
 use App\Http\Controllers\DashboardController;
-
+use App\Models\RecetaLote;
 // Rutas públicas para login
 Route::get('/', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/', [AuthController::class, 'login']);
@@ -111,7 +111,7 @@ Route::middleware('auth')->group(function () {
 
     // Vista principal del listado de clientes
     Route::get('store/client', [ClienteController::class, 'viewIndex'])->name('store.client');
-    Route::post('client/import',[ClienteController::class,'import'])->name('cliente.import');
+    Route::post('client/import', [ClienteController::class, 'import'])->name('cliente.import');
 
     // CRUD Cliente
     Route::prefix('cliente')->name('cliente.')->group(function () {
@@ -121,7 +121,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/{id}', [ClienteController::class, 'update'])->name('update');       // Actualizar
         Route::delete('/{id}', [ClienteController::class, 'destroy'])->name('destroy');  // Activar/Inactivar
         Route::delete('/{id}/force', [ClienteController::class, 'forceDelete'])->name('forceDelete'); // Eliminación total (opcional)
-        
+
     });
 
     // Vista principal del listado de cultivos
@@ -244,6 +244,42 @@ Route::middleware('auth')->group(function () {
     Route::get('/receta/email/datos/{id}', [RecetaEmailController::class, 'getDatosEnvio'])->name('receta.email.datos');
     Route::post('/receta/enviar-correo', [RecetaEmailController::class, 'enviarCorreo'])->middleware('auth')->name('receta.correo.enviar');
 
+    Route::get('/receta/lote/{id}/recetas', function ($id) {
 
-    
+        $lote = RecetaLote::with('recetas')->findOrFail($id);
+
+        // 1) Verificamos si existe AL MENOS una receta con PDF
+        $tieneRecetasIndividuales = $lote->recetas->contains(function ($r) {
+            return !empty($r->receta_path);
+        });
+
+        // 2) SI TIENE PDFs individuales → listar todas las recetas
+        if ($tieneRecetasIndividuales) {
+
+            $recetas = $lote->recetas->map(function ($r) {
+
+                return [
+                    'receta_numero' => "Receta #{$r->receta_numero}",
+                    'fecha_emision' => $r->fecha_emision,
+                    'path' => $r->receta_path,
+                ];
+            });
+
+            return response()->json([
+                'recetas' => $recetas
+            ]);
+        }
+
+
+        // 3) SI NO HAY PDFs individuales → mostrar SOLO EL PDF DEL LOTE
+        $recetaUnica = [
+            'receta_numero' => "Lote #{$lote->receta_lote_id}",
+            'fecha_emision' => $lote->fecha_creacion,
+            'path' => $lote->receta_lote_path,
+        ];
+
+        return response()->json([
+            'recetas' => [$recetaUnica]
+        ]);
+    });
 });

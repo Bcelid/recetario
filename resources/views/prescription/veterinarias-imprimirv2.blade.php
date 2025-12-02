@@ -98,7 +98,6 @@
 </head>
 
 <body>
-    @foreach ($recetaLote->recetas as $receta)
         @php
             $cliente = $receta->cliente;
             $fecha = \Carbon\Carbon::parse($receta->fecha_emision);
@@ -112,8 +111,8 @@
                         <div class="encabezado-sinborder">
                             <table style="width: 100%; border-collapse: collapse;">
                                 <tr>
-                                    <td style="width: 60%; text-align: center; vertical-align: center;">
-                                        <table class="table-fecha">
+                                    <td style="width: 60%; text-align: center; vertical-align: top;">
+                                        <table class="table-fecha" style="margin: 0 auto;">
                                             <tr>
                                                 <td colspan="3" style="font-weight: bold;">Fecha de emisión</td>
                                             </tr>
@@ -128,6 +127,10 @@
                                                 <td>{{ $fecha->format('Y') }}</td>
                                             </tr>
                                         </table>
+                                    
+                                        <h4 style="margin-top: 8px; margin-bottom: 0; font-weight: bold; text-align: left;">
+                                            RECETA VETERINARIA
+                                        </h4>
                                     </td>
 
                                     <td style="width: 40%; text-align: center; vertical-align: top;">
@@ -181,9 +184,9 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td style="border: 1px solid #000; padding: 4px;">Almacen:</td>
+                                    <td style="border: 1px solid #000; padding: 4px;">Propietario:</td>
                                     <td style="border: 1px solid #000; padding: 4px;">
-                                        {{ $recetaLote->almacen->almacen_nombre ?? '' }}
+                                        {{ $recetaLote->almacen->propietario->propietario_almacen_nombre ?? '' }} {{ $recetaLote->almacen->propietario->propietario_almacen_apellido ?? '' }}
                                     </td>
                                 </tr>
                                 <tr>
@@ -237,14 +240,23 @@
                                                             ($ing->unidadMedida->unidad_medida_detalle ?? '');
                                                     })
                                                     ->implode(', ');
+                                                    
+                                                    $cantidad = fmod($detalle->producto_cantidad, 1) == 0
+                                        ? number_format($detalle->producto_cantidad, 0)
+                                        : number_format($detalle->producto_cantidad, 1);
+                                
+                                    // Redondear presentación
+                                    $presentacion = fmod($producto->producto_presentacion, 1) == 0
+                                        ? number_format($producto->producto_presentacion, 0)
+                                        : number_format($producto->producto_presentacion, 1);
                                             @endphp
                                 
                                             <div style="line-height: 1.2; margin: 0 0 2px 0;">
                                                 <strong>{{ $i + 1 }})</strong>
-                                                {{ $detalle->producto_cantidad }}
+                                                {{ $cantidad }}
                                                 {{ $producto->producto_nombre }}
                                                 {{ $producto->producto_concentracion }}
-                                                {{ $producto->producto_presentacion }}{{ $producto->unidadMedida->unidad_medida_detalle ?? '' }}
+                                                {{ $presentacion }}{{ $producto->unidadMedida->unidad_medida_detalle ?? '' }}
                                                 ({{ $formulacion_abrev }})
                                                 U.envase: {{ $producto->producto_unidad_en_envase ?? '-' }}
                                                 Principio(s) Activo(s): {{ $principios }}
@@ -328,8 +340,8 @@
                         <div class="encabezado-sinborder">
                             <table style="width: 100%; border-collapse: collapse;">
                                 <tr>
-                                    <td style="width: 60%; text-align: center; vertical-align: center;">
-                                        <table class="table-fecha">
+                                    <td style="width: 60%; text-align: center; vertical-align: top;">
+                                        <table class="table-fecha" style="margin: 0 auto;">
                                             <tr>
                                                 <td colspan="3" style="font-weight: bold;">Fecha de emisión</td>
                                             </tr>
@@ -344,6 +356,10 @@
                                                 <td>{{ $fecha->format('Y') }}</td>
                                             </tr>
                                         </table>
+                                    
+                                        <h4 style="margin-top: 8px; margin-bottom: 0; font-weight: bold; text-align: left;">
+                                            RECETA VETERINARIA
+                                        </h4>
                                     </td>
 
                                     <td style="width: 40%; text-align: center; vertical-align: top;">
@@ -540,7 +556,6 @@
         </tr>
         </table>
         </div>
-    @endforeach
 </body>
 
 </html>

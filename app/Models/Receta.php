@@ -17,6 +17,7 @@ class Receta extends Model
         'cliente_id',
         'fecha_emision',
         'receta_numero',
+        'receta_path',
     ];
 
     // Relaciones

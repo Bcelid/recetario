@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Hoja A4 en 2 partes</title>
+    <title>Receta Agrícola</title>
     <style>
         body {
             margin: 0;
@@ -97,23 +97,23 @@
     </style>
 </head>
 
-<body>
-    @foreach ($recetaLote->recetas as $receta)
-        @php
-            $cliente = $receta->cliente;
-            $fecha = \Carbon\Carbon::parse($receta->fecha_emision);
-        @endphp
-
-        <div class="page">
-            <table class="page-table">
-                <tr>
-                    <!-- Parte Izquierda -->
-                    <td class="page-cell">
-                        <div class="encabezado-sinborder">
-                            <table style="width: 100%; border-collapse: collapse;">
-                                <tr>
-                                    <td style="width: 60%; text-align: center; vertical-align: center;">
-                                        <table class="table-fecha">
+                                    <body>
+                                  
+                                            @php
+                                                $cliente = $receta->cliente;
+                                                $fecha = \Carbon\Carbon::parse($receta->fecha_emision);
+                                            @endphp
+                                    
+                                            <div class="page">
+                                                <table class="page-table">
+                                                    <tr>
+                                                        <!-- Parte Izquierda -->
+                                                        <td class="page-cell">
+                                                            <div class="encabezado-sinborder">
+                                                                <table style="width: 100%; border-collapse: collapse;">
+                                                                    <tr>
+                                                                        <td style="width: 60%; text-align: center; vertical-align: top;">
+                                        <table class="table-fecha" style="margin: 0 auto;">
                                             <tr>
                                                 <td colspan="3" style="font-weight: bold;">Fecha de emisión</td>
                                             </tr>
@@ -128,12 +128,17 @@
                                                 <td>{{ $fecha->format('Y') }}</td>
                                             </tr>
                                         </table>
+                                    
+                                        <h4 style="margin-top: 8px; margin-bottom: 0; font-weight: bold; text-align: left;">
+                                            RECETA AGRÍCOLA
+                                        </h4>
                                     </td>
+
 
                                     <td style="width: 40%; text-align: center; vertical-align: top;">
                                         <img src="{{ $recetaLote->almacen->almacen_logo
-                                            ? url('storage/' . $recetaLote->almacen->almacen_logo)
-                                            : url('img/sin_logo.png') }}"
+                                        ? url('storage/' . $recetaLote->almacen->almacen_logo)
+                                        : url('img/sin_logo.png') }}"
                                             alt="Logo Almacén"
                                             style="max-height: 50px; display: block; margin: 0 auto;">
                                         <div class="receta-numero">N. {{ $receta->receta_numero }}</div>
@@ -141,7 +146,7 @@
                                 </tr>
                             </table>
                         </div>
-
+                        
                         <div class="encabezado-sinborder">
                             <table style="width: 100%; border-collapse: collapse; font-size:9pt;">
                                 <tr style="background-color: #e0e0e0; font-weight: bold;">
@@ -181,9 +186,9 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td style="border: 1px solid #000; padding: 4px;">Almacen:</td>
+                                    <td style="border: 1px solid #000; padding: 4px;">Propietario:</td>
                                     <td style="border: 1px solid #000; padding: 4px;">
-                                        {{ $recetaLote->almacen->almacen_nombre ?? '' }}
+                                        {{ $recetaLote->almacen->propietario->propietario_almacen_nombre ?? '' }} {{ $recetaLote->almacen->propietario->propietario_almacen_apellido ?? '' }}
                                     </td>
                                 </tr>
                                 <tr>
@@ -207,9 +212,9 @@
                                     </td>
                                 </tr>
 
-                                @php
-                                    $productos = $receta->productos;
-                                @endphp
+                                    @php
+                                        $productos = $receta->productos;
+                                    @endphp
                                 <td style="
     border: 1px solid #000;
     height: 120px;
@@ -218,7 +223,7 @@
     overflow-wrap: break-word;
     overflow: hidden;
     padding: 2px 2px 2px 10px;"
-                                    colspan="4">
+    colspan="4">
                                     @for ($i = 0; $i < 3; $i++)
                                         @if (isset($productos[$i]))
                                             @php
@@ -304,8 +309,8 @@
                         <div class="encabezado-sinborder">
                             <table style="width: 100%; border-collapse: collapse;">
                                 <tr>
-                                    <td style="width: 60%; text-align: center; vertical-align: center;">
-                                        <table class="table-fecha">
+                                    <td style="width: 60%; text-align: center; vertical-align: top;">
+                                        <table class="table-fecha" style="margin: 0 auto;">
                                             <tr>
                                                 <td colspan="3" style="font-weight: bold;">Fecha de emisión</td>
                                             </tr>
@@ -320,12 +325,16 @@
                                                 <td>{{ $fecha->format('Y') }}</td>
                                             </tr>
                                         </table>
+                                    
+                                        <h4 style="margin-top: 8px; margin-bottom: 0; font-weight: bold; text-align: left;">
+                                            RECETA AGRÍCOLA
+                                        </h4>
                                     </td>
 
                                     <td style="width: 40%; text-align: center; vertical-align: top;">
                                         <img src="{{ $recetaLote->almacen->almacen_logo
-                                            ? url('storage/' . $recetaLote->almacen->almacen_logo)
-                                            : url('img/sin_logo.png') }}"
+                                        ? url('storage/' . $recetaLote->almacen->almacen_logo)
+                                        : url('img/sin_logo.png') }}"
                                             alt="Logo Almacén"
                                             style="max-height: 50px; display: block; margin: 0 auto;">
                                         <div class="receta-numero">N. {{ $receta->receta_numero }}</div>
@@ -333,7 +342,6 @@
                                 </tr>
                             </table>
                         </div>
-
                         <div class="encabezado-sinborder">
                             <table style="width: 100%; border-collapse: collapse; font-size: 9pt;">
                                 <tr style="background-color: #e0e0e0; font-weight: bold;">
@@ -355,8 +363,7 @@
                                                     $cultivo = $dosificacion->cultivo->cultivo_nombre ?? '-';
                                                     $maleza = $dosificacion->maleza->maleza_nombre ?? '-';
                                                 @endphp
-                                                <strong>{{ $i + 1 }})</strong> {{ $cultivo }} -
-                                                {{ $maleza }}<br>
+                                                <strong>{{ $i + 1 }})</strong> {{ $cultivo }} - {{ $maleza }}<br>
                                             @else
                                                 <strong>{{ $i + 1 }})</strong> -<br>
                                             @endif
@@ -397,8 +404,8 @@
     word-break: break-word;
     overflow-wrap: break-word;
     overflow: hidden;
-    padding: 2px 2px 2px 10px;"
-                                    colspan="4">
+    padding: 2px 2px 2px 10px;" 
+    colspan="4">
 
                                     @for ($i = 0; $i < 3; $i++)
                                         @if (isset($productos[$i]))
@@ -447,13 +454,12 @@
                                     </td>
                                 </tr>
                             </table>
-                            <p class="text-center"><strong>Cuerpo 2: Propietario del animal</strong></p>
+                            <p class="text-center"><strong>Cuerpo 2: Propietario del cultivo</strong></p>
                         </div>
                     </td>
                 </tr>
             </table>
         </div>
-    @endforeach
 </body>
 
 </html>

@@ -63,7 +63,7 @@ class PrescriptionController extends Controller
             $query->where('almacen_id', $almacen_id);
         }
 
-        $lotes = $query->orderBy('fecha_creacion', 'desc')->get();
+        $lotes = $query->orderBy('receta_lote_id', 'desc')->get();
 
         $data = $lotes->map(function ($lote) {
             return [
@@ -118,7 +118,11 @@ class PrescriptionController extends Controller
             ]);
 
             // Obtener clientes del almacén
-            $clientes = Cliente::where('cliente_almacen_id', $request->almacen_id)->pluck('cliente_id')->toArray();
+            $clientes = Cliente::where('cliente_almacen_id', $request->almacen_id)
+                ->where('cliente_estado', 1)
+                ->pluck('cliente_id')
+                ->toArray();
+
 
             if (empty($clientes)) {
                 return response()->json(['error' => 'No hay clientes asociados al almacén.'], 400);
@@ -286,6 +290,7 @@ class PrescriptionController extends Controller
         DB::beginTransaction();
 
         try {
+
             // Crear lote
             $recetaLote = RecetaLote::create([
                 'tecnico_id' => $request->tecnico_id,
@@ -298,8 +303,9 @@ class PrescriptionController extends Controller
                 'receta_lote_enviado' => 0,
             ]);
 
-            // Clientes disponibles
+            // Clientes del almacén
             $clientes = Cliente::where('cliente_almacen_id', $request->almacen_id)
+                ->where('cliente_estado', 1)
                 ->pluck('cliente_id')
                 ->toArray();
 
@@ -307,56 +313,53 @@ class PrescriptionController extends Controller
                 return response()->json(['error' => 'No hay clientes asociados al almacén.'], 400);
             }
 
-            // Control de secuencia
-            $recetaSecuencias = [];
-            $keySecuencia = $request->almacen_id . '_' . $request->receta_tipo;
+            // Control secuencial
+            $key = $request->almacen_id . '_' . $request->receta_tipo;
             $ultimaReceta = Receta::whereHas('recetaLote', function ($q) use ($request) {
                 $q->where('almacen_id', $request->almacen_id)
                     ->where('receta_tipo', $request->receta_tipo);
             })->orderBy('receta_numero', 'desc')->first();
 
-            $recetaSecuencias[$keySecuencia] = $ultimaReceta ? $ultimaReceta->receta_numero + 1 : 1;
+            $secuencia = $ultimaReceta ? $ultimaReceta->receta_numero + 1 : 1;
 
-            // Iterar recetas del lote
+            // Guardamos recipientes y recetas para generar PDF luego
+            $recetasGeneradas = [];
+
             foreach ($request->recetas as $recetaInput) {
-                $fechaEmision = $recetaInput['fecha_emision'];
 
-                // Cliente y número secuencial
                 $clienteId = $clientes[array_rand($clientes)];
-                $numero = $recetaSecuencias[$keySecuencia]++;
+                $numero = $secuencia++;
 
-                // Crear UNA receta para todos los productos del bloque
+                // Crear receta
                 $receta = Receta::create([
                     'receta_lote_id' => $recetaLote->receta_lote_id,
                     'cliente_id' => $clienteId,
-                    'fecha_emision' => $fechaEmision,
+                    'fecha_emision' => $recetaInput['fecha_emision'],
                     'receta_numero' => $numero,
+                    'receta_path' => null,
                 ]);
 
                 foreach ($recetaInput['productos'] as $productoInput) {
+
                     $productoId = $productoInput['producto_id'];
                     $cantidad = floatval($productoInput['producto_cantidad']);
 
-                    // Obtenemos el producto para mostrar nombre y concentración
                     $producto = Producto::find($productoId);
 
                     if (!$producto) {
-                        return response()->json([
-                            'error' => "Producto con ID $productoId no encontrado."
-                        ], 400);
+                        throw new \Exception("Producto con ID $productoId no encontrado.");
                     }
 
-                    // Verificamos dosificación
-                    $dosificaciones = Dosificacion::where('producto_id', $productoId)->pluck('dosificacion_id')->toArray();
+                    $dosificaciones = Dosificacion::where('producto_id', $productoId)
+                        ->pluck('dosificacion_id')
+                        ->toArray();
+
                     if (empty($dosificaciones)) {
-                        return response()->json([
-                            'error' => "El producto {$producto->producto_nombre} {$producto->producto_concentracion} no tiene dosificaciones asociadas."
-                        ], 400);
+                        throw new \Exception("El producto {$producto->producto_nombre} {$producto->producto_concentracion} no tiene dosificaciones asociadas.");
                     }
 
                     $dosificacionId = $dosificaciones[array_rand($dosificaciones)];
 
-                    // Creamos el detalle de producto en la receta
                     RecetaProducto::create([
                         'receta_id' => $receta->receta_id,
                         'producto_id' => $productoId,
@@ -364,84 +367,87 @@ class PrescriptionController extends Controller
                         'producto_cantidad' => $cantidad,
                     ]);
                 }
-            }
 
+                $recetasGeneradas[] = $receta;
+            }
 
             DB::commit();
-            // Generar PDF
-            if ($request->receta_tipo == 0) {
-                $recetaLote->load([
-                    'almacen.propietario',
-                    'tecnico',
-                    'recetas.cliente',
-                    'recetas.productos.producto.formulacion',
-                    'recetas.productos.producto.ingredientes.ingredienteActivo',
-                    'recetas.productos.producto.unidadMedida',
-                    'recetas.productos.dosificacion.cultivo',
-                    'recetas.productos.dosificacion.maleza',
-                ]);
-
-                $pdf = Pdf::loadView('prescription.agricolas-imprimirv2', compact('recetaLote'))
-                    ->setPaper('A4', 'landscape');
-
-                $path = 'recetas/lote_' . $recetaLote->receta_lote_id . '.pdf';
-                Storage::disk('public')->put($path, $pdf->output());
-
-                $recetaLote->update(['receta_lote_path' => $path]);
-            }
-
-            if ($request->receta_tipo == 1) {
-                $recetaLote->load([
-                    'almacen.propietario',
-                    'tecnico',
-                    'recetas.cliente',
-                    'recetas.productos.producto.formulacion',
-                    'recetas.productos.producto.ingredientes.ingredienteActivo',
-                    'recetas.productos.producto.unidadMedida',
-                    'recetas.productos.dosificacion.subespecie.especie',
-                ]);
-
-                $pdf = Pdf::loadView('prescription.veterinarias-imprimirv2', compact('recetaLote'))
-                    ->setPaper('A4', 'landscape');
-
-                $path = 'recetas/lote_veterinario_' . $recetaLote->receta_lote_id . '.pdf';
-                Storage::disk('public')->put($path, $pdf->output());
-
-                $recetaLote->update(['receta_lote_path' => $path]);
-            }
-
-            return response()->json([
-                'message' => 'Receta lote generado correctamente.',
-                'receta_lote_id' => $recetaLote->receta_lote_id
-            ]);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'error' => 'Error al generar receta lote: ' . $e->getMessage()
             ], 500);
         }
+
+        /*
+        ======================
+        GENERAR PDFs INDIVIDUALES
+        ======================
+        (fuera de la transacción)
+    */
+
+        ini_set('memory_limit', '512M');
+
+        foreach ($recetasGeneradas as $receta) {
+
+            $receta->load([
+                'cliente',
+                'recetaLote.almacen.propietario',
+                'recetaLote.tecnico',
+                'productos.producto.formulacion',
+                'productos.producto.ingredientes.ingredienteActivo',
+                'productos.producto.unidadMedida',
+                $request->receta_tipo == 0
+                    ? 'productos.dosificacion.cultivo'
+                    : 'productos.dosificacion.subespecie.especie',
+            ]);
+
+            $numero = $receta->receta_numero;
+            $tipo = $request->receta_tipo == 0 ? 'agricola' : 'veterinaria';
+
+            $path = "recetas/{$tipo}_{$numero}_lote{$recetaLote->receta_lote_id}.pdf";
+
+            $view = $request->receta_tipo == 0
+                ? 'prescription.agricolas-imprimirv2'
+                : 'prescription.veterinarias-imprimirv2';
+
+            $pdf = Pdf::loadView($view, [
+                'recetaLote' => $recetaLote,
+                'receta' => $receta,
+            ])->setPaper('A4', 'landscape');
+
+            Storage::disk('public')->put($path, $pdf->output());
+
+            $receta->update(['receta_path' => $path]);
+        }
+
+        return response()->json([
+            'message' => 'Recetas generadas correctamente.',
+            'receta_lote_id' => $recetaLote->receta_lote_id
+        ]);
     }
+
 
 
 
     public function imprimirRecetasAgricolas($loteId)
     {
-        //$recetaLote = RecetaLote::with([
-        //    'almacen.propietario',
-        //    'tecnico',
-        //    'recetas.producto.formulacion',
-        //    'recetas.producto.ingredientes.ingredienteActivo',
-        //    'recetas.dosificacion.cultivo',
-        //    'recetas.dosificacion.maleza',
-        //    'recetas.dosificacion.subespecie',
-        //    'recetas.dosificacion.unidadMedidaDosificacion',
-        //    'recetas.cliente'
-        //])
-        //    ->where('receta_lote_id', $loteId)
-        //    ->where('receta_tipo', 0) // Solo agrícolas
-        //    ->firstOrFail();
+        $recetaLote = RecetaLote::with([
+            'almacen.propietario',
+            'tecnico',
+            'recetas.producto.formulacion',
+            'recetas.producto.ingredientes.ingredienteActivo',
+            'recetas.dosificacion.cultivo',
+            'recetas.dosificacion.maleza',
+            'recetas.dosificacion.subespecie',
+            'recetas.dosificacion.unidadMedidaDosificacion',
+            'recetas.cliente'
+        ])
+            ->where('receta_lote_id', $loteId)
+            ->where('receta_tipo', 0) // Solo agrícolas
+            ->firstOrFail();
 
-        return view('prescription.recetaagricola');
+        return view('prescription.agricolas-imprimir', compact('recetaLote'));
     }
 
     public function destroy($id)
@@ -458,7 +464,7 @@ class PrescriptionController extends Controller
         ]);
     }
 
-    public function firmarLote(Request $request)
+    public function firmarLote1(Request $request)
     {
         $id = $request->input('id');
         $recetaLote = RecetaLote::with('tecnico.categoria')->findOrFail($id);
@@ -526,7 +532,7 @@ class PrescriptionController extends Controller
             ->build();
 
         $qrImage = base64_encode($result->getString());
-
+        ini_set('memory_limit', '512M'); // aumenta el límite
         // Cargar relaciones y vista según tipo de receta
         if ($recetaLote->receta_tipo == 0) { // Agrícola
             $recetaLote->load([
@@ -574,7 +580,7 @@ class PrescriptionController extends Controller
 
         // 5. Importar archivo existente
         $pageCount = $fpdiPdf->setSourceFile($absolutePath);
-        for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
+        for ($pageNo = 1; $pageNo < $pageCount; $pageNo++) {
             $templateId = $fpdiPdf->importPage($pageNo);
             $fpdiPdf->AddPage("L", 'A4'); // Landscape
             $fpdiPdf->useTemplate($templateId);
@@ -621,5 +627,215 @@ class PrescriptionController extends Controller
         }
 
         return response()->json($response);
+    }
+
+
+    public function firmarLote(Request $request)
+    {
+        $id = $request->input('id');
+
+        // Cargamos lote + técnico + recetas + relaciones necesarias
+        $recetaLote = RecetaLote::with([
+            'tecnico.categoria',
+            'almacen.propietario',
+            'recetas.productos.producto.formulacion',
+            'recetas.productos.producto.ingredientes.ingredienteActivo',
+            'recetas.productos.producto.unidadMedida',
+            // relaciones de dosificacion segun tipo (cargamos ambas; la vista escogerá la que use)
+            'recetas.productos.dosificacion.cultivo',
+            'recetas.productos.dosificacion.subespecie.especie',
+            'recetas.cliente'
+        ])->findOrFail($id);
+
+        $tecnico = $recetaLote->tecnico;
+
+        // Verificar firma activa
+        $firmaActiva = $tecnico->firmas()
+            ->where('tecnico_firma_estado', 1)
+            ->orderBy('tecnico_firma_id', 'desc')
+            ->first();
+
+        if (!$firmaActiva) {
+            return response()->json(['error' => 'El técnico no tiene una firma digital registrada o activa.'], 400);
+        }
+
+        // Validar caducidad
+        $fechaExpiracion = Carbon::parse($firmaActiva->fecha_expiracion);
+        $fechaActual = Carbon::now();
+        $diasHastaExpiracion = $fechaActual->diffInDays($fechaExpiracion, false);
+
+        if ($fechaActual->gt($fechaExpiracion)) {
+            return response()->json([
+                'error' => 'FIRMA CADUCADA',
+                'message' => 'La firma digital del técnico ha caducado. Fecha de expiración: ' . $fechaExpiracion->format('d/m/Y'),
+                'fecha_expiracion' => $fechaExpiracion->format('d/m/Y'),
+                'accion' => 'Actualice la firma digital para poder firmar documentos.'
+            ], 400);
+        }
+
+        // Alerta de caducidad (<= 30 días)
+        $alertaCaducidad = null;
+        if ($diasHastaExpiracion <= 30) {
+            $alertaCaducidad = [
+                'tipo' => 'advertencia',
+                'mensaje' => 'La firma digital caduca en ' . $diasHastaExpiracion . ' días (' . $fechaExpiracion->format('d/m/Y') . ')',
+                'dias_restantes' => $diasHastaExpiracion,
+                'fecha_expiracion' => $fechaExpiracion->format('d/m/Y'),
+                'accion_recomendada' => 'Renueve la firma digital lo antes posible'
+            ];
+        }
+
+        // Verificar archivos de firma
+        $certAbs = storage_path('app/private/' . $firmaActiva->tecnico_firma_pub);
+        $keyAbs  = storage_path('app/private/' . $firmaActiva->tecnico_firma_key);
+        $certPath = 'file://' . $certAbs;
+        $keyPath = 'file://' . $keyAbs;
+        $password = $firmaActiva->tecnico_firma_clave;
+
+        if (!file_exists($certAbs) || !file_exists($keyAbs)) {
+            return response()->json(['error' => 'Los archivos de firma digital no existen.'], 400);
+        }
+
+        // Generar QR (se reutiliza para todas las recetas del lote)
+        $qrContent = "Cédula: {$tecnico->tecnido_cedula}\n"
+            . "Nombre: {$tecnico->tecnico_nombre} {$tecnico->tecnico_apellido}\n"
+            . "Fecha de firma: " . Carbon::now()->format('d/m/Y') . "\n"
+            . "SENESCYT: {$tecnico->tecnico_senescyt}\n"
+            . "Categoría: {$tecnico->categoria->tecnico_categoria_nombre}";
+
+        $result = Builder::create()
+            ->writer(new PngWriter())
+            ->data($qrContent)
+            ->encoding(new Encoding('UTF-8'))
+            ->size(200)
+            ->margin(10)
+            ->build();
+
+        $qrImage = base64_encode($result->getString());
+
+        // Aumentar memoria si hace falta
+        ini_set('memory_limit', '512M');
+
+        $tipo = $recetaLote->receta_tipo == 0 ? 'agricola' : 'veterinaria';
+        $createdFiles = []; // tracks signed files to cleanup on failure
+        $updatedRecetas = []; // para respuesta
+        DB::beginTransaction();
+
+        try {
+            // Iterar recetas y firmar cada una
+            foreach ($recetaLote->recetas as $receta) {
+                // Cargar relaciones concretas de la receta (si no están cargadas)
+                $receta->load([
+                    'cliente',
+                    'productos.producto.formulacion',
+                    'productos.producto.ingredientes.ingredienteActivo',
+                    'productos.producto.unidadMedida',
+                    'productos.dosificacion.cultivo',
+                    'productos.dosificacion.subespecie.especie',
+                ]);
+
+                // Generar el PDF individual (misma vista que al crearla)
+                $view = $recetaLote->receta_tipo == 0
+                    ? 'prescription.agricolas-imprimirv2'
+                    : 'prescription.veterinarias-imprimirv2';
+
+                // Renderizamos el PDF con el QR (la vista debe usar $qrImage)
+                $domPdf = Pdf::loadView($view, [
+                    'recetaLote' => $recetaLote,
+                    'receta' => $receta,
+                    'qrImage' => $qrImage,
+                ])->setPaper('A4', 'landscape');
+
+                // Ruta del firmado (convención solicitada)
+                $relativePath = "recetas_firmadas/{$tipo}_{$receta->receta_numero}_lote{$recetaLote->receta_lote_id}.pdf";
+
+                // Guardamos el PDF "sin firmar" temporalmente en storage (en public), luego lo sobreescribiremos con el firmado.
+                Storage::disk('public')->put($relativePath, $domPdf->output());
+                $absolutePath = storage_path('app/public/' . $relativePath);
+
+                // Firma digital con FPDI
+                $fpdi = new Fpdi();
+
+                // abrir el archivo generado
+                $pageCount = $fpdi->setSourceFile($absolutePath);
+                for ($pageNo = 1; $pageNo < $pageCount; $pageNo++) {
+                    $templateId = $fpdi->importPage($pageNo);
+                    $fpdi->AddPage("L", 'A4'); // Landscape
+                    $fpdi->useTemplate($templateId);
+                }
+
+                // Configurar la firma (asegúrate que la librería FPDI que usas soporta setSignature)
+                $fpdi->setSignature(
+                    $certPath,
+                    $keyPath,
+                    $password,
+                    '',
+                    2,
+                    [
+                        'Name' => $tecnico->tecnico_nombre . ' ' . $tecnico->tecnico_apellido,
+                        'Location' => 'Ecuador',
+                        'Reason' => 'Firma digital de receta profesional',
+                        'ContactInfo' => 'Cédula: ' . $tecnico->tecnido_cedula,
+                    ]
+                );
+
+                // Generar PDF firmado en memoria y guardarlo sobrescribiendo el temporal
+                $pdfFirmado = $fpdi->Output('', 'S');
+                Storage::disk('public')->put($relativePath, $pdfFirmado);
+
+                // Registrar creado para posible limpieza si más adelante falla
+                $createdFiles[] = $relativePath;
+
+                // Actualizar campo receta_path con la ruta firmada (relativa en disco public)
+                $receta->receta_path = $relativePath;
+                $receta->save();
+
+                $updatedRecetas[] = [
+                    'receta_id' => $receta->receta_id,
+                    'receta_numero' => $receta->receta_numero,
+                    'receta_path' => $relativePath
+                ];
+            }
+
+            // Si todo ok, actualizar recetalote como firmado
+            $recetaLote->update([
+                'receta_lote_firmado' => 1,
+                'receta_lote_fecha_firma' => now(),
+                // Si quieres guardar un path del lote firmado, podrías poner null o un resumen.
+                // 'receta_lote_path' => 'recetas_firmadas/lote_'.$recetaLote->receta_lote_id.'_firmado.pdf'
+            ]);
+
+            DB::commit();
+
+            $response = [
+                'message' => 'Todas las recetas firmadas correctamente.',
+                'receta_lote_id' => $recetaLote->receta_lote_id,
+                'recetas' => $updatedRecetas,
+                'firma_valida_hasta' => $fechaExpiracion->format('d/m/Y'),
+                'dias_restantes_firma' => $diasHastaExpiracion
+            ];
+
+            if ($alertaCaducidad) {
+                $response['alerta_caducidad'] = $alertaCaducidad;
+            }
+
+            return response()->json($response, 200);
+        } catch (\Exception $e) {
+            // Rollback DB
+            DB::rollBack();
+
+            // Borrar archivos firmados creados en este intento (limpieza)
+            foreach ($createdFiles as $f) {
+                try {
+                    Storage::disk('public')->delete($f);
+                } catch (\Exception $ex) {
+                    // si no se puede borrar, ignoramos para no tapar el error principal
+                }
+            }
+
+            return response()->json([
+                'error' => 'Error al firmar recetas: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

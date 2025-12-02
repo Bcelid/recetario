@@ -69,12 +69,16 @@
                             <input type="email" class="form-control" id="destinatario" readonly>
                         </div>
                         <div class="mb-3">
+                            <label for="cc" class="form-label">CC</label>
+                            <input type="email" class="form-control" id="cc">
+                        </div>
+                        <div class="mb-3">
                             <label for="cuerpoCorreo" class="form-label">Mensaje</label>
                             <textarea class="form-control" id="cuerpoCorreo" rows="6"></textarea>
                         </div>
                         <div class="mb-3">
                             <label>Documento adjunto:</label>
-                            <p><a href="#" id="linkDocumento" target="_blank">Ver documento</a></p>
+                            <div id="listaArchivos"></div>
                         </div>
                         <div class="mb-3 mt-4">
                             <h6>Historial de envíos</h6>
@@ -97,6 +101,42 @@
                     </div>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal Ver Recetas del Lote -->
+    <div class="modal fade" id="modalVerRecetas" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Detalles del Lote</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+
+                <div class="modal-body">
+                    
+                    <div class="mb-3">
+                        <strong>Lote:</strong> <span id="verLoteNumero"></span><br>
+                        <strong>Tipo:</strong> <span id="verLoteTipo"></span>
+                    </div>
+
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Documento</th>
+                                <th>Fecha</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaRecetasLote">
+                            <!-- Se llena dinámicamente -->
+                        </tbody>
+                    </table>
+
+                </div>
+
+            </div>
         </div>
     </div>
 
@@ -208,10 +248,14 @@
 
                                 return `
             <div class="d-flex gap-1">
-                 <a href="/storage/${data.receta_lote_path}" class="btn btn-sm btn-info" title="Ver" target="_blank">
-        <i class="fa-solid fa-eye"></i>
-    </a>
-
+                 <a href="javascript:void(0)" 
+                    class="btn btn-sm btn-info btn-ver-recetas" 
+                    data-id="${data.receta_lote_id}" 
+                    data-tipo="${data.receta_tipo}"
+                    data-lote="${data.receta_lote_id}"
+                    title="Ver recetas del lote">
+                    <i class="fa-solid fa-eye"></i>
+                    </a>
                 <button type="button" class="btn btn-sm btn-warning btn-firmar" title="Firmar" data-id="${data.receta_lote_id}" ${!isActivo || isFirmado ? 'disabled' : ''}>
     <i class="fa-solid fa-pen-nib"></i>
 </button>
@@ -335,31 +379,78 @@
                     $('#remitente').val(`${res.remitente_nombre} <${res.remitente_correo}>`);
                     $('#destinatario').val(res.destinatario);
                     $('#cuerpoCorreo').val(res.body);
-                    $('#linkDocumento').attr('href', res.documento_url);
 
-                    // Limpiar tabla
+                    // ---------------------------------------------
+                    // MOSTRAR LISTA DE ARCHIVOS INDIVIDUALES
+                    // ---------------------------------------------
+                    let html = "";
+                    res.documentos.forEach((doc, index) => {
+                        html += `
+                            <div class="archivo-item mb-2 d-flex align-items-center" data-index="${index}">
+                                <a href="${doc.url}" target="_blank">${doc.nombre}</a>
+                                <button type="button" class="btn btn-sm btn-danger ms-2 quitar-archivo" data-index="${index}">
+                                    Quitar
+                                </button>
+                                <input type="hidden" name="paths[]" value="${doc.path}">
+                            </div>
+                        `;
+                    });
+
+                    $('#listaArchivos').html(html);
+
+
+                    // ---------------------------------------------
+                    //  BOTÓN QUITAR (delegado)
+                    // ---------------------------------------------
+                    $('#listaArchivos').off('click').on('click', '.quitar-archivo', function() {
+                        const index = $(this).data('index');
+                        $(`[data-index="${index}"]`).remove();
+                    });
+
+
+                    // ---------------------------------------------
+                    // HISTORIAL (igual que antes)
+                    // ---------------------------------------------
                     $('#historialEnviosBody').empty();
 
-                    // Suponiendo que res.historial es un array con los envíos previos
                     if (res.historial && res.historial.length > 0) {
+
                         res.historial.forEach(envio => {
+                            // envio = { fecha, destinatario, recetas: [ {nombre}, {nombre} ] }
+
+                            let listaRecetas = "";
+
+                            if (envio.recetas && envio.recetas.length > 0) {
+                                listaRecetas = envio.recetas
+                                    .map(r => r.nombre)
+                                    .join("<br>");
+                            } else {
+                                listaRecetas = "—";
+                            }
+
                             $('#historialEnviosBody').append(`
-            <tr>
-                <td>${envio.fecha}</td>
-                <td>${envio.destinatario}</td>
-            </tr>
-        `);
+                                <tr>
+                                    <td>${envio.fecha}</td>
+                                    <td>${envio.destinatario}</td>
+                                    <td>${listaRecetas}</td>
+                                </tr>
+                            `);
                         });
+
                     } else {
                         $('#historialEnviosBody').append(`
-        <tr>
-            <td colspan="3" class="text-center">No hay envíos previos.</td>
-        </tr>
-    `);
+                            <tr>
+                                <td colspan="3" class="text-center">No hay envíos previos.</td>
+                            </tr>
+                        `);
                     }
 
+                    // ---------------------------------------------
+                    // MOSTRAR MODAL
+                    // ---------------------------------------------
                     const modal = new bootstrap.Modal(document.getElementById('modalEnviarCorreo'));
                     modal.show();
+
                 }).fail(function(xhr) {
                     let msg = 'Error al obtener los datos del correo.';
                     if (xhr.responseJSON?.error) {
@@ -369,38 +460,104 @@
                 });
             });
 
+
             $('#formEnviarCorreo').on('submit', function(e) {
                 e.preventDefault();
 
                 let $btn = $('#btn-enviar-correo');
                 let original = $btn.html();
                 $btn.prop('disabled', true).html(
-                    '<span class="spinner-border spinner-border-sm" role="status"></span> Enviando...');
+                    '<span class="spinner-border spinner-border-sm" role="status"></span> Enviando...'
+                );
 
-                const data = {
-                    receta_lote_id: $('#correoLoteId').val(),
-                    almacen_id: $('#correoAlmacenId').val(),
-                    to: $('#destinatario').val(),
-                    subject: $('#correoAsunto').val(),
-                    body: $('#cuerpoCorreo').val(),
-                };
+                let formData = new FormData(this);
 
+                formData.append("receta_lote_id", $('#correoLoteId').val());
+                formData.append("almacen_id", $('#correoAlmacenId').val());
+                formData.append("to", $('#destinatario').val());
+                formData.append("cc", $('#cc').val());
+                formData.append("subject", $('#correoAsunto').val());
+                formData.append("body", $('#cuerpoCorreo').val());
 
-                $.post('/receta/enviar-correo', data, function(res) {
-                    $btn.html('<i class="fa fa-check text-white"></i> Enviado');
-                    $('#modalEnviarCorreo').modal('hide');
-                    table.ajax.reload(null, false);
-                }).fail(function(xhr) {
-                    console.error('Respuesta completa:', xhr);
-                    let msg = 'Error al enviar el correo.';
-                    if (xhr.responseJSON?.error) {
-                        msg = xhr.responseJSON.error;
+                $.ajax({
+                    url: '/receta/enviar-correo',
+                    type: 'POST',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function(res) {
+                        $btn.html('<i class="fa fa-check text-white"></i> Enviado');
+                        $btn.prop('disabled', false).html(original);
+                        $('#modalEnviarCorreo').modal('hide');
+                        table.ajax.reload(null, false);
+                    },
+                    error: function(xhr) {
+                        console.error(xhr);
+                        let msg = xhr.responseJSON?.error ?? 'Error al enviar el correo.';
+                        alert(msg);
+                        $btn.prop('disabled', false).html(original);
                     }
-                    alert(msg);
                 });
             });
 
 
+
+
+            // Abrir modal para ver recetas del lote
+            // Abrir modal para ver recetas del lote
+            $('#lotesTable').on('click', '.btn-ver-recetas', function () {
+
+                const loteId = $(this).data('id');
+                const loteNumero = $(this).data('lote');
+                const tipo = $(this).data('tipo') == 0 ? 'Agrícolas' : 'Veterinarias';
+
+                // Datos del encabezado del modal
+                $('#verLoteNumero').text(loteNumero);
+                $('#verLoteTipo').text(tipo);
+
+                // Limpiar tabla
+                $('#tablaRecetasLote').html('<tr><td colspan="3" class="text-center">Cargando...</td></tr>');
+
+                // Obtener recetas del lote
+                $.get(`/receta/lote/${loteId}/recetas`, function(res) {
+
+                    if (res.recetas.length === 0) {
+                        $('#tablaRecetasLote').html(`
+                            <tr>
+                                <td colspan="3" class="text-center">No hay recetas en este lote.</td>
+                            </tr>
+                        `);
+                        return;
+                    }
+
+                    let html = "";
+
+                    res.recetas.forEach(rec => {
+                        html += `
+                            <tr>
+                                <td>${rec.receta_numero}</td>
+                                <td>${rec.fecha_emision}</td>
+                                <td>
+                                    <a href="/storage/${rec.path}?v=${Date.now()}" target="_blank" class="btn btn-sm btn-primary">
+                                        Ver
+                                    </a>
+                                </td>
+                            </tr>
+                        `;
+                    });
+
+                    $('#tablaRecetasLote').html(html);
+
+                }).fail(() => {
+                    $('#tablaRecetasLote').html(`
+                        <tr><td colspan="3" class="text-center text-danger">Error al cargar recetas.</td></tr>
+                    `);
+                });
+
+                // Mostrar modal
+                const modal = new bootstrap.Modal(document.getElementById('modalVerRecetas'));
+                modal.show();
+            });
         });
     </script>
 @endsection
