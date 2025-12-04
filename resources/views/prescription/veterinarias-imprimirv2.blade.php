@@ -289,22 +289,27 @@
                                     padding: 2px 2px 2px 10px;
                                     line-height: 1.2; /* Ajusta la altura de línea */
                                 " colspan="4">
-                                    @for ($i = 0; $i < 3; $i++)
-                                    @if (isset($productos[$i]))
-                                        @php
-                                            $detalle = $productos[$i];
-                                            $producto = $detalle->producto;
-                                        @endphp
-                                        <div style="line-height: 1.2; margin: 0;">
+                                   @for ($i = 0; $i < 3; $i++)
+                                        @if (isset($productos[$i]))
+                                            @php
+                                                $dosificacion = $productos[$i]->dosificacion;
+                                                $texto = $dosificacion->dosificacion_aplicacion ?? '-';
+                                                $partes = explode('//', $texto);
+
+                                                if (count($partes) > 1) {
+                                                    $cuerpo1 = trim($partes[0]);
+                                                    $cuerpo2 = trim($partes[1]);
+                                                } else {
+                                                    $cuerpo1 = $cuerpo2 = trim($texto);
+                                                }
+                                            @endphp
+                                            <br>
                                             <strong>{{ $i + 1 }})</strong>
-                                            {{ $producto->producto_diagnostico ?? '-' }}
-                                        </div>
-                                    @else
-                                        <div style="line-height: 1.2; margin: 0;">
-                                            <strong>{{ $i + 1 }})</strong> -
-                                        </div>
-                                    @endif
-                                @endfor
+                                            {{ $cuerpo2 ?? '-' }}<br>
+                                        @else
+                                            <strong>{{ $i + 1 }})</strong> -<br>
+                                        @endif
+                                    @endfor
                             </td>
 
 
@@ -513,15 +518,21 @@
         @if (isset($productos[$i]))
             @php
                 $dosificacion = $productos[$i]->dosificacion;
+                $texto = $dosificacion->dosificacion_aplicacion ?? '-';
+                $partes = explode('//', $texto);
+
+                if (count($partes) > 1) {
+                    $cuerpo1 = trim($partes[0]);
+                    $cuerpo2 = trim($partes[1]);
+                } else {
+                    $cuerpo1 = $cuerpo2 = trim($texto);
+                }
             @endphp
-            <div style="line-height: 1.2; margin: 0 0 2px 0;">
-                <strong>{{ $i + 1 }})</strong>
-                {{ $dosificacion->dosificacion_aplicacion ?? '-' }}
-            </div>
+            <br>
+            <strong>{{ $i + 1 }})</strong>
+            {{ $cuerpo1 ?? '-' }}<br>
         @else
-            <div style="line-height: 1.2; margin: 0 0 2px 0;">
-                <strong>{{ $i + 1 }})</strong> -
-            </div>
+            <strong>{{ $i + 1 }})</strong> -<br>
         @endif
     @endfor
 </td>
