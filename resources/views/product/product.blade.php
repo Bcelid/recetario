@@ -207,7 +207,7 @@
                         <select class="form-select select-ingrediente" style="width: 100%"></select>
                     </td>
                     <td>
-    <input type="number" class="form-control" placeholder="Composición" step="0.01" />
+    <input type="number" class="form-control" placeholder="Composición" step="0.0001" />
 </td>
 
                     <td>

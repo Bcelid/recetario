@@ -83,7 +83,7 @@
                                             {{ $ing->ingredienteActivo->ingrediente_activo_nombre }}</option>
                                     </select>
                                 </td>
-                                <td><input type="number" class="form-control" value="{{ $ing->cantidad }}" required></td>
+                                <td><input type="number" step="0.0001" class="form-control" value="{{ $ing->cantidad }}" required></td>
                                 <td>
                                     <select class="form-select select-unidad" required>
                                         <option value="{{ $ing->unidad_medida_id }}" selected>
