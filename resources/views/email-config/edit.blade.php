@@ -21,6 +21,9 @@
                         <option value="gmail" {{ $config->smtp_provider === 'gmail' ? 'selected' : '' }}>Gmail</option>
                         <option value="outlook" {{ $config->smtp_provider === 'outlook' ? 'selected' : '' }}>Outlook
                         </option>
+                        <option value="coagvelcor" {{ $config->smtp_provider === 'coagvelcor' ? 'selected' : '' }}>
+                            Coagvelcor</option>
+
                     </select>
                     @error('smtp_provider')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -80,68 +83,66 @@
 
 @section('scripts')
     <script>
-        document.getElementById('btnTestConnection').addEventListener('click', function() {
-            $('#loadingModal').modal('show');
+        document.getElementById('btnTestConnection').addEventListener('click', function () {
             const testResult = document.getElementById('testResult');
-            testResult.innerHTML = ''; // limpiar mensaje previo
+            testResult.innerHTML = '';
+
+            // Mostrar el modal de carga inmediatamente
+            $('#loadingModal').modal('show');
 
             fetch("{{ route('correo.config.test') }}", {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        smtp_provider: document.getElementById('smtp_provider').value,
-                        smtp_username: document.querySelector('input[name="smtp_username"]').value,
-                        smtp_password: document.querySelector('input[name="smtp_password"]').value,
-                        smtp_from_name: document.querySelector('input[name="smtp_from_name"]').value,
-                        smtp_from_address: document.querySelector('input[name="smtp_from_address"]')
-                            .value,
-                    })
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    smtp_provider: document.getElementById('smtp_provider').value,
+                    smtp_username: document.querySelector('input[name="smtp_username"]').value,
+                    smtp_password: document.querySelector('input[name="smtp_password"]').value,
+                    smtp_from_name: document.querySelector('input[name="smtp_from_name"]').value,
+                    smtp_from_address: document.querySelector('input[name="smtp_from_address"]').value,
                 })
-                .then(async response => {
-                    $('#loadingModal').modal('hide');
-                    const contentType = response.headers.get("content-type");
-                    if (!response.ok) {
-                        
-                        if (contentType && contentType.includes("application/json")) {
-                            const errorData = await response.json();
-                            throw new Error(errorData.message || "Error desconocido");
-                        } else {
-                            throw new Error("Error en la solicitud HTTP");
-                        }
-                    }
+            })
+            .then(async response => {
+                const contentType = response.headers.get("content-type");
+
+                if (!response.ok) {
                     if (contentType && contentType.includes("application/json")) {
-                        return response.json();
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || "Error desconocido");
                     } else {
-                        throw new Error("Respuesta no es JSON");
+                        throw new Error("Error en la solicitud HTTP");
                     }
-                })
-                .then(data => {
-                    $('#loadingModal').modal('hide');
-                    let alertClass, message;
+                }
 
-                    if (data.success) {
-                        alertClass = 'alert-success';
-                        message = data.message; // mensaje del backend
-                    } else {
-                        alertClass = 'alert-danger';
-                        message = 'Error de conexión, revisar los datos ingresados.';
-                        // Opcionalmente, puedes agregar el mensaje detallado: 
-                        // message += ' Detalle: ' + data.message;
-                    }
+                if (contentType && contentType.includes("application/json")) {
+                    return response.json();
+                } else {
+                    throw new Error("Respuesta no es JSON");
+                }
+            })
+            .then(data => {
+                setTimeout(() => {
+    $('#loadingModal').modal('hide');
+}, 1000); // 1000 milisegundos = 1 segundo
 
-                    testResult.innerHTML = `<div class="alert ${alertClass}">${message}</div>`;
-                })
-                .catch(error => {
-                    $('#loadingModal').modal('hide');
-                    testResult.innerHTML =
-                        `<div class="alert alert-danger">Error al probar conexión, revisar los datos ingresados</div>`;
-                    console.error("Error:", error);
-                });
+                let alertClass = data.success ? 'alert-success' : 'alert-danger';
+                let message = data.success
+                    ? data.message
+                    : 'Error de conexión, revisar los datos ingresados.';
+                testResult.innerHTML = `<div class="alert ${alertClass}">${message}</div>`;
+            })
+            .catch(error => {
+                setTimeout(() => {
+    $('#loadingModal').modal('hide');
+}, 1000); // 1000 milisegundos = 1 segundo
+
+                testResult.innerHTML =
+                    `<div class="alert alert-danger">Error al probar conexión: ${error.message}</div>`;
+                console.error("Error:", error);
+            });
         });
     </script>
-
 @endsection

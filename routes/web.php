@@ -23,6 +23,7 @@ use App\Http\Controllers\PrescriptionController;
 use App\Http\Controllers\RecetaEmailController;
 use App\Http\Controllers\DashboardController;
 use App\Models\RecetaLote;
+use Illuminate\Support\Facades\Mail;
 // Rutas públicas para login
 Route::get('/', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/', [AuthController::class, 'login']);
@@ -121,7 +122,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/{id}', [ClienteController::class, 'update'])->name('update');       // Actualizar
         Route::delete('/{id}', [ClienteController::class, 'destroy'])->name('destroy');  // Activar/Inactivar
         Route::delete('/{id}/force', [ClienteController::class, 'forceDelete'])->name('forceDelete'); // Eliminación total (opcional)
-
+        Route::get('/almacen/{id}', [ClienteController::class, 'clientesPorAlmacen']);
     });
 
     // Vista principal del listado de cultivos
@@ -281,5 +282,34 @@ Route::middleware('auth')->group(function () {
         return response()->json([
             'recetas' => [$recetaUnica]
         ]);
+    });
+
+    // routes/web.php
+    Route::get('/test-smtp', function () {
+
+        $config = [
+            'host' => 'smtp-mail.outlook.com',
+            'port' => 587,
+            'encryption' => 'tls',
+            'username' => 'byronceli_93@hotmail.com',
+            'password' => 'ByronC2017*',
+        ];
+
+        config([
+            'mail.mailers.smtp.host' => $config['host'],
+            'mail.mailers.smtp.port' => $config['port'],
+            'mail.mailers.smtp.encryption' => $config['encryption'],
+            'mail.mailers.smtp.username' => $config['username'],
+            'mail.mailers.smtp.password' => $config['password'],
+            'mail.from.address' => $config['username'],
+            'mail.from.name' => 'Prueba SMTP',
+        ]);
+
+        Mail::raw('Correo de prueba desde Laravel', function ($message) use ($config) {
+            $message->to('byronceli67@gmail.com')
+                ->subject('Prueba SMTP OK');
+        });
+
+        return "Correo enviado. Revisa la bandeja.";
     });
 });

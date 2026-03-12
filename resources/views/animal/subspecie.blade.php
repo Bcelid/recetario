@@ -101,6 +101,7 @@
                             <div class="col-md-4">
                                 <label for="unidad_edad" class="form-label">Unidad *</label>
                                 <select id="unidad_edad" name="unidad_edad" class="form-select" required>
+                                    <option value="semanas">Semanas</option>
                                     <option value="meses">Meses</option>
                                     <option value="años">Años</option>
                                 </select>

@@ -49,7 +49,7 @@ class SubespecieController extends Controller
             'sexos.*'                => 'string|max:50',
             'edad_min'               => 'required|integer|min:0',
             'edad_max'               => 'required|integer|min:0|gte:edad_min',
-            'unidad_edad'            => 'required|in:meses,años',
+            'unidad_edad'            => 'required|in:semanas,meses,años',
         ]);
 
         $subespecie = Subespecie::create([

@@ -183,11 +183,11 @@ class ClienteController extends Controller
                     ->exists();
 
                 if ($exists) {
-                    $clientesDuplicados[] = $clienteData['cliente_nombre'] .' '. $clienteData['cliente_apellido'];
+                    $clientesDuplicados[] = $clienteData['cliente_nombre'] . ' ' . $clienteData['cliente_apellido'];
                 } else {
                     // Crear el cliente si no existe
                     Cliente::create($clienteData);
-                    $clientesYaRegistrados[] = $clienteData['cliente_nombre'] .' '. $clienteData['cliente_apellido'];
+                    $clientesYaRegistrados[] = $clienteData['cliente_nombre'] . ' ' . $clienteData['cliente_apellido'];
                 }
             }
 
@@ -204,5 +204,18 @@ class ClienteController extends Controller
                 'file' => $e->getFile(),
             ], 400);
         }
+    }
+
+    /**
+     * Listar clientes por almacén
+     */
+    public function clientesPorAlmacen($almacen_id)
+    {
+        $clientes = Cliente::where('cliente_almacen_id', $almacen_id)
+            ->where('cliente_estado', 1) // solo activos (opcional)
+            ->orderBy('cliente_nombre')
+            ->get();
+
+        return response()->json($clientes);
     }
 }

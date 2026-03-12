@@ -15,6 +15,7 @@ class Receta extends Model
     protected $fillable = [
         'receta_lote_id',
         'cliente_id',
+        'receta_factura',
         'fecha_emision',
         'receta_numero',
         'receta_path',

@@ -327,7 +327,12 @@ class PrescriptionController extends Controller
 
             foreach ($request->recetas as $recetaInput) {
 
-                $clienteId = $clientes[array_rand($clientes)];
+                if ($recetaInput['cliente_id'] == 0) {
+                    $clienteId = $clientes[array_rand($clientes)];
+                } else {
+                    //  Si viene cliente elegido → usar ese
+                    $clienteId = $recetaInput['cliente_id'];
+                }
                 $numero = $secuencia++;
 
                 // Crear receta
@@ -337,6 +342,7 @@ class PrescriptionController extends Controller
                     'fecha_emision' => $recetaInput['fecha_emision'],
                     'receta_numero' => $numero,
                     'receta_path' => null,
+                    'receta_factura' => $recetaInput['factura'], //  guarda factura
                 ]);
 
                 foreach ($recetaInput['productos'] as $productoInput) {
