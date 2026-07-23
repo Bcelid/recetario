@@ -14,7 +14,7 @@ class AuthController extends Controller
             // Si ya está autenticado, redirige a welcome o dashboard
             return redirect()->route('dashboard');
         }
-        return view('login');
+        return view('Login');
     }
 
 

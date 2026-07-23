@@ -30,7 +30,7 @@ class UnidadMedidaController extends Controller
             $query->where('unidad_medida_estado', 0);
         }
 
-        $unidades = $query->orderBy('unidad_medida_id', 'desc')->get();
+        $unidades = $query->orderBy('unidad_medida_detalle', 'asc')->get();
 
         return response()->json($unidades);
     }

@@ -358,12 +358,12 @@
                 let originalHtml = $btn.html();
 
                 // Verifica que el texto original y el cambio al spinner se están aplicando correctamente.
-                console.log('Original Button Text:', originalHtml);
+                //console.log('Original Button Text:', originalHtml);
                 $btn.prop('disabled', true).html(
                     '<span class="spinner-border spinner-border-sm" role="status"></span> Subiendo...');
 
                 // Asegúrate de que el spinner se ve correctamente
-                console.log('Button Text After Change:', $btn.html());
+                //console.log('Button Text After Change:', $btn.html());
 
 
                 let formData = new FormData(this);
@@ -381,16 +381,33 @@
                         table.ajax.reload(); // Recarga la tabla de clientes
                     },
                     error: function(xhr) {
-                        var errorMsg = 'Error al importar los clientes';
-                        if (xhr.responseJSON && xhr.responseJSON.error) {
-                            errorMsg =
-                                `Error: ${xhr.responseJSON.error}\nArchivo: ${xhr.responseJSON.file}\nLínea: ${xhr.responseJSON.line}`;
-                        } else {
-                            errorMsg =
-                                'Hubo un error al procesar la solicitud. Por favor, intenta nuevamente.';
-                        }
-                        alert(errorMsg);
-                    },
+    var errorMsg = 'Error al importar los clientes';
+    
+    // Verificar si la respuesta contiene datos JSON con detalles del error
+    if (xhr.responseJSON) {
+        // Si hay un error con los detalles enviados desde el servidor
+        if (xhr.responseJSON.error) {
+            errorMsg = `
+                Error: ${xhr.responseJSON.error}\n
+                Archivo: ${xhr.responseJSON.file}\n
+                Línea: ${xhr.responseJSON.line}
+            `;
+        } else if (xhr.responseJSON.message) {
+    // Si hay un mensaje específico de validación o error de datos
+    errorMsg = xhr.responseJSON.message;
+    
+    if (xhr.responseJSON.errores && Array.isArray(xhr.responseJSON.errores)) {
+        errorMsg += ': ' + xhr.responseJSON.errores.join(', ');
+    }
+}
+    } else {
+        // Error general si no hay respuesta JSON
+        errorMsg = 'Hubo un error al procesar la solicitud. Por favor, intenta nuevamente.';
+    }
+
+    // Mostrar el error en un alert
+    alert(errorMsg);
+},
                     complete: function() {
                         $btn.prop('disabled', false).html(originalHtml);
                     }

@@ -11,7 +11,8 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         // Query base para los lotes
-        $query = RecetaLote::query();
+        $query = RecetaLote::query()->where('receta_lote_estado', 1);
+
 
         // Filtros aplicables a todos los conteos
         if ($request->filled('tipo_lote')) {
@@ -51,7 +52,8 @@ class DashboardController extends Controller
 
     public function getData(Request $request)
     {
-        $query = RecetaLote::with(['tecnico', 'almacen']);
+        $query = RecetaLote::with(['tecnico', 'almacen'])->where('receta_lote_estado', 1);
+
 
         if ($request->filled('tipo_lote')) {
             $query->where('receta_tipo', $request->tipo_lote);
@@ -92,7 +94,7 @@ class DashboardController extends Controller
         $fechaMin = $request->input('fecha_min');
         $fechaMax = $request->input('fecha_max');
 
-        $query = RecetaLote::query();
+        $query = RecetaLote::query()->where('receta_lote_estado', 1); 
 
         if ($tipo !== null && $tipo !== '') {
             $query->where('receta_tipo', $tipo);

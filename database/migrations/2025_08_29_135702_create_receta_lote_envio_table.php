@@ -27,6 +27,7 @@ return new class extends Migration
 
             // Correo al que se envió (se guarda como snapshot)
             $table->string('correo');
+            $table->string('cc');
 
             // URL del documento adjunto
             $table->string('url_documento');

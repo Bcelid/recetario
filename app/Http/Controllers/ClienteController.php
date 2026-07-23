@@ -149,60 +149,112 @@ class ClienteController extends Controller
     }
 
     public function import(Request $request)
-    {
-        $request->validate([
-            'almacen_id' => 'required|exists:almacen,almacen_id',
-            'excel_file' => 'required|file|mimes:xlsx,xls',
-        ]);
+{
+    $request->validate([
+        'almacen_id' => 'required|exists:almacen,almacen_id',
+        'excel_file' => 'required|file|mimes:xlsx,xls',
+    ]);
 
-        $file = $request->file('excel_file');
+    $file = $request->file('excel_file');
 
-        $clientesYaRegistrados = [];
-        $clientesDuplicados = [];
+    $clientesYaRegistrados = [];
+    $clientesDuplicados = [];
+    $errores = [];
 
-        try {
-            $spreadsheet = IOFactory::load($file);
-            $sheet = $spreadsheet->getActiveSheet();
-            $rows = $sheet->toArray();
+    try {
+        // Cargar el archivo Excel
+        $spreadsheet = IOFactory::load($file);
+        $sheet = $spreadsheet->getActiveSheet();
+        $rows = $sheet->toArray();
 
-            foreach ($rows as $index => $row) {
-                if ($index == 0) continue; // Ignorar la fila de encabezados
-
-                $clienteData = [
-                    'cliente_cedula'    => $row[0],
-                    'cliente_nombre'    => $row[1],
-                    'cliente_apellido'  => $row[2],
-                    'cliente_direccion' => $row[3],
-                    'cliente_estado'    => 1,
-                    'cliente_almacen_id' => $request->almacen_id,
-                ];
-
-                // Verificar si ya existe un cliente con la misma cédula y en el mismo almacén
-                $exists = Cliente::where('cliente_cedula', $clienteData['cliente_cedula'])
-                    ->where('cliente_almacen_id', $clienteData['cliente_almacen_id'])
-                    ->exists();
-
-                if ($exists) {
-                    $clientesDuplicados[] = $clienteData['cliente_nombre'] .' '. $clienteData['cliente_apellido'];
-                } else {
-                    // Crear el cliente si no existe
-                    Cliente::create($clienteData);
-                    $clientesYaRegistrados[] = $clienteData['cliente_nombre'] .' '. $clienteData['cliente_apellido'];
-                }
-            }
-
+        if (empty($rows) || count($rows) == 1) {
             return response()->json([
-                'message' => 'Clientes importados correctamente.',
-                'clientes_ya_registrados' => $clientesYaRegistrados,
-                'clientes_duplicados' => $clientesDuplicados,
-            ]);
-        } catch (PhpSpreadsheetException $e) {
-            return response()->json([
-                'message' => 'Error al procesar el archivo Excel.',
-                'error' => $e->getMessage(),
-                'line' => $e->getLine(),
-                'file' => $e->getFile(),
+                'message' => 'El archivo está vacío o solo contiene encabezados.',
             ], 400);
         }
+
+        foreach ($rows as $index => $row) {
+    if ($index == 0) continue; // Ignorar la fila de encabezados
+
+    // Limpiar espacios en todos los valores de la fila
+    $row = array_map(function ($value) {
+        return is_string($value) ? trim($value) : $value;
+    }, $row);
+
+    // Comprobar si toda la fila está vacía
+    if (empty(array_filter($row))) {
+        continue; // Si la fila está vacía, la saltamos
     }
+
+    // Verificar si hay campos vacíos en la fila
+    $cedula   = $row[0] ?? null;
+    $nombre   = $row[1] ?? null;
+    $apellido = $row[2] ?? null;
+
+    if (empty($cedula) || empty($nombre) || empty($apellido)) {
+        $errores[] = "Fila " . ($index + 1) . ": Faltan campos obligatorios (Cedula, Nombre o Apellido).";
+        continue; // Saltar esta fila
+    }
+
+    $clienteData = [
+        'cliente_cedula'     => $cedula,
+        'cliente_nombre'     => $nombre,
+        'cliente_apellido'   => $apellido,
+        'cliente_direccion'  => $row[3] ?? null, // Opcional
+        'cliente_estado'     => 1,
+        'cliente_almacen_id' => $request->almacen_id,
+    ];
+
+    // Verificar si ya existe un cliente con la misma cédula y en el mismo almacén
+    $exists = Cliente::where('cliente_cedula', $clienteData['cliente_cedula'])
+    ->where('cliente_almacen_id', $clienteData['cliente_almacen_id'])
+    ->where('cliente_estado', 1) // solo cuenta si está activo
+    ->exists();
+
+    if ($exists) {
+        $clientesDuplicados[] = $clienteData['cliente_nombre'] . ' ' . $clienteData['cliente_apellido'];
+    } else {
+        Cliente::create($clienteData);
+        $clientesYaRegistrados[] = $clienteData['cliente_nombre'] . ' ' . $clienteData['cliente_apellido'];
+    }
+}
+
+
+
+        // Si hay errores, devolver los mensajes correspondientes
+        if (!empty($errores)) {
+            return response()->json([
+                'message' => 'El archivo tiene algunos errores.',
+                'errores' => $errores,
+            ], 400);
+        }
+
+        return response()->json([
+            'message' => 'Clientes importados correctamente.',
+            'clientes_ya_registrados' => $clientesYaRegistrados,
+            'clientes_duplicados' => $clientesDuplicados,
+        ]);
+    } catch (PhpSpreadsheetException $e) {
+        return response()->json([
+            'message' => 'Error al procesar el archivo Excel.',
+            'error' => $e->getMessage(),
+            'line' => $e->getLine(),
+            'file' => $e->getFile(),
+        ], 400);
+    }
+}
+
+    /**
+     * Listar clientes por almacén
+     */
+    public function clientesPorAlmacen($almacen_id)
+    {
+        $clientes = Cliente::where('cliente_almacen_id', $almacen_id)
+            ->where('cliente_estado', 1) // solo activos (opcional)
+            ->orderBy('cliente_nombre')
+            ->get();
+
+        return response()->json($clientes);
+    }
+
 }

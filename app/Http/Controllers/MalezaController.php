@@ -30,7 +30,7 @@ class MalezaController extends Controller
             $query->where('maleza_estado', 0);
         }
 
-        $malezas = $query->orderBy('maleza_id', 'desc')->get();
+        $malezas = $query->orderBy('maleza_nombre', 'asc')->get();
 
         return response()->json($malezas);
     }

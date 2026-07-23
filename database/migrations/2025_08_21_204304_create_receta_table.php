@@ -16,7 +16,8 @@ return new class extends Migration
 
             $table->unsignedBigInteger('receta_lote_id');
             $table->unsignedBigInteger('cliente_id');
-            $table->unsignedBigInteger('producto_id');
+            $table->string('receta_factura',17)->nullable();
+            
             $table->unsignedBigInteger('dosificacion_id'); // << nuevo campo clave foránea
 
             $table->unsignedInteger('producto_cantidad');

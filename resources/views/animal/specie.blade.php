@@ -104,9 +104,9 @@
                     {
                         data: 'especie_estado',
                         render: function(data) {
-                            return data == 1 ?
-                                '<span class="badge bg-success">Activo</span>' :
-                                '<span class="badge bg-secondary">Inactivo</span>';
+                            return Number(data) === 1
+                                ? '<span class="badge bg-success">Activo</span>'
+                                : '<span class="badge bg-secondary">Inactivo</span>';
                         }
                     },
                     {
@@ -114,22 +114,27 @@
                         orderable: false,
                         searchable: false,
                         render: function(data, type, row) {
-                            const btnEdit = `
-                                <button class="btn btn-primary btn-sm btn-edit" title="Editar" data-id="${row.especie_id}">
-                                    <i class="fa-solid fa-pen-to-square"></i>
-                                </button>
-                            `;
-                            const btnToggleEstado = `
-                                <button class="btn btn-sm ${row.especie_estado ? 'btn-danger' : 'btn-success'} btn-toggle-estado" 
-                                    title="${row.especie_estado ? 'Desactivar' : 'Activar'}" 
-                                    data-id="${row.especie_id}">
-                                    ${row.especie_estado 
-                                        ? '<i class="fa-solid fa-xmark-circle"></i>' 
-                                        : '<i class="fa-solid fa-check-circle"></i>'}
-                                </button>
-                            `;
-                            return `<div class="d-flex gap-1">${btnEdit}${btnToggleEstado}</div>`;
-                        }
+                        const estado = Number(row.especie_estado); // asegúrate que sea número
+                    
+                        const btnEdit = `
+                            <button class="btn btn-primary btn-sm btn-edit" title="Editar" data-id="${row.especie_id}">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                        `;
+                    
+                        const btnToggleEstado = `
+                            <button class="btn btn-sm ${estado === 1 ? 'btn-danger' : 'btn-success'} btn-toggle-estado" 
+                                title="${estado === 1 ? 'Desactivar' : 'Activar'}" 
+                                data-id="${row.especie_id}">
+                                ${estado === 1 
+                                    ? '<i class="fa-solid fa-xmark-circle"></i>' 
+                                    : '<i class="fa-solid fa-check-circle"></i>'}
+                            </button>
+                        `;
+                    
+                        return `<div class="d-flex gap-1">${btnEdit}${btnToggleEstado}</div>`;
+                    }
+
 
                     }
                 ]

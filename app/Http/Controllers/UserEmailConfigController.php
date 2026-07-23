@@ -26,7 +26,7 @@ class UserEmailConfigController extends Controller
     public function update(Request $request)
     {
         $request->validate([
-            'smtp_provider' => 'required|in:gmail,outlook',
+            'smtp_provider' => 'required|in:gmail,outlook,coagvelcor',  // Agregué coagvelcor aquí
             'smtp_username' => 'required|email',
             'smtp_password' => 'required|string',
             'smtp_from_name' => 'required|string|max:255',
@@ -44,6 +44,11 @@ class UserEmailConfigController extends Controller
                 'host' => 'smtp.office365.com',
                 'port' => 587,
                 'encryption' => 'tls',
+            ],
+            'coagvelcor' => [
+                'host' => 'mail.coagvelcor.com',
+                'port' => 465,
+                'encryption' => 'ssl',
             ]
         ];
 
@@ -67,10 +72,11 @@ class UserEmailConfigController extends Controller
     }
 
 
+
     public function testConnection(Request $request)
     {
         $request->validate([
-            'smtp_provider' => 'required|in:gmail,outlook',
+            'smtp_provider' => 'required|in:gmail,outlook,coagvelcor', // Asegúrate de validar coagvelcor
             'smtp_username' => 'required|email',
             'smtp_password' => 'required',
             'smtp_from_name' => 'required|string|max:255',
@@ -88,10 +94,14 @@ class UserEmailConfigController extends Controller
                 'port' => 587,
                 'encryption' => 'tls',
             ],
+            'coagvelcor' => [
+                'host' => 'mail.coagvelcor.com',
+                'port' => 465,
+                'encryption' => 'ssl',
+            ],
         };
 
         try {
-
             $encryption = $config['encryption']; // 'tls' o 'ssl' o null
 
             if ($encryption === 'ssl') {
@@ -105,7 +115,6 @@ class UserEmailConfigController extends Controller
                 $config['port'],
                 $useSsl
             );
-
 
             $transport->setUsername($request->smtp_username);
             $transport->setPassword($request->smtp_password);
@@ -128,3 +137,4 @@ class UserEmailConfigController extends Controller
         }
     }
 }
+

@@ -222,22 +222,24 @@ class ProductoController extends Controller
 
 
     public function getByTipo($tipo)
-    {
-        // 0 = agrícola, 1 = veterinario
-        $productos = Producto::with(['unidadMedida', 'formulacion'])
-            ->where('producto_estado', 1)
-            ->where('producto_tipo', $tipo)
-            ->get()
-            ->map(function ($producto) {
-                return [
-                    'producto_id'   => $producto->producto_id,
-                    'nombre'        => $producto->producto_nombre,
-                    'concentracion' => $producto->producto_concentracion,
-                    'presentacion'  => $producto->producto_presentacion . ' ' . ($producto->unidadMedida->unidad_medida_detalle ?? ''),
-                    'formulacion'   => $producto->formulacion->formulacion_abreviatura ?? '',
-                ];
-            });
+{
+    // 0 = agrícola, 1 = veterinario
+    $productos = Producto::with(['unidadMedida', 'formulacion'])
+        ->where('producto_estado', 1)
+        ->where('producto_tipo', $tipo)
+        ->orderBy('producto_nombre', 'asc') // 👈 Ordena por nombre
+        ->get()
+        ->map(function ($producto) {
+            return [
+                'producto_id'   => $producto->producto_id,
+                'nombre'        => $producto->producto_nombre,
+                'concentracion' => $producto->producto_concentracion,
+                'presentacion'  => $producto->producto_presentacion . ' ' . ($producto->unidadMedida->unidad_medida_detalle ?? ''),
+                'formulacion'   => $producto->formulacion->formulacion_abreviatura ?? '',
+            ];
+        });
 
-        return response()->json($productos);
-    }
+    return response()->json($productos);
+}
+
 }

@@ -39,30 +39,44 @@
     <hr>
 
     <!-- Sección de recetas -->
-    <h5>Recetas del lote</h5>
-    <div class="row mb-3">
-        <div class="col-md-3">
-            <label class="form-label">Fecha de la receta</label>
-            <input type="date" id="fechaRecetaInput" class="form-control">
-        </div>
-        <div class="col-md-2 d-flex align-items-end">
-            <button class="btn btn-primary w-100" id="btnAgregarReceta">Agregar Receta</button>
-        </div>
+<h5>Recetas del lote</h5>
+<div class="row mb-3">
+    <div class="col-md-3">
+        <label class="form-label">Fecha de la receta</label>
+        <input type="date" id="fechaRecetaInput" class="form-control">
     </div>
+    <div class="col-md-3">
+        <label class="form-label">Cliente</label>
+        <select id="clienteSelect" class="form-select" required>
 
-    <div class="table-responsive">
-        <table class="table table-bordered" id="tablaRecetas">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Fecha de Receta</th>
-                    <th>Productos</th>
-                    <th>Acción</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+        </select>
     </div>
+    <div class="col-md-3">
+        <label class="form-label">N° Factura</label>
+        <input type="text" id="factura" class="form-control"
+            maxlength="17"
+            placeholder="001-001-000000001">
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+        <button class="btn btn-primary w-100" id="btnAgregarReceta">Agregar Receta</button>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-bordered" id="tablaRecetas">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Fecha de Receta</th>
+                <th>Cliente</th>
+                <th>N° Factura</th>
+                <th>Productos</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
 
     <!-- Modal para productos -->
     <!-- Modal para agregar productos -->
@@ -152,13 +166,17 @@
     <div class="mt-4 text-end">
         <button class="btn btn-success" id="btnGenerarLote">Generar Lote</button>
     </div>
+    
+   
 @endsection
 
 @section('scripts')
     <script>
+   
         $(document).ready(function() {
             let recetas = []; // array de recetas
             let recetaSeleccionada = null;
+            const loadingModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('loadingModal'));
 
             // Cargar técnicos y almacenes
             $.get('/tecnico', function(data) {
@@ -239,17 +257,29 @@
             // Agregar receta
             $('#btnAgregarReceta').on('click', function() {
                 const fechaReceta = $('#fechaRecetaInput').val();
+                const clienteId = $('#clienteSelect').val();
+                const clienteNombre = $('#clienteSelect option:selected').text();
+                let factura = $('#factura').val().trim();
                 if (!fechaReceta) {
                     alert('Debes seleccionar la fecha de la receta');
                     return;
                 }
+                // Si factura está vacía → valor por defecto
+                if (factura === '') {
+                    factura = '000-000-000000000';
+                }
                 let index = recetas.length;
                 recetas.push({
                     fecha_emision: fechaReceta,
+                    cliente_id: clienteId,
+                    cliente_nombre: clienteNombre,
+                    factura: factura,
                     productos: []
                 });
                 renderRecetas();
+                // limpiar campos
                 $('#fechaRecetaInput').val('');
+                $('#factura').val('');
             });
 
             $(document).on('click', '.seleccionar-modal', function() {
@@ -273,25 +303,28 @@
 
             // Renderizar tabla de recetas
             function renderRecetas() {
-                let tbody = $('#tablaRecetas tbody');
-                tbody.empty();
-                recetas.forEach((r, i) => {
-                    let productosHtml = r.productos.map(p =>
-                        `<li>${p.producto_cantidad} - ${p.nombre}</li>`).join(
-                        '');
-                    tbody.append(`
+            let tbody = $('#tablaRecetas tbody');
+            tbody.empty();
+            recetas.forEach((r, i) => {
+                let productosHtml = r.productos.map(p =>
+                    `<li>${p.producto_cantidad} - ${p.nombre}</li>`).join(
+                    '');
+                tbody.append(`
                 <tr>
                     <td>${i+1}</td>
                     <td>${r.fecha_emision}</td>
+                    <td>${r.cliente_nombre}</td>
+                    <td>${r.factura}</td>
                     <td><ul>${productosHtml || '<i>Sin productos</i>'}</ul></td>
                     <td>
                         <button class="btn btn-sm btn-primary agregar-productos" data-index="${i}" data-bs-toggle="modal" data-bs-target="#productoModal">Agregar Productos</button>
                         <button class="btn btn-sm btn-danger eliminar-receta" data-index="${i}">Eliminar</button>
                     </td>
                 </tr>
-            `);
-                });
-            }
+                `);
+
+            });
+        }
 
             // Abrir modal de productos
             $(document).on('click', '.agregar-productos', function() {
@@ -329,8 +362,8 @@
                 let receta = recetas[recetaSeleccionada];
 
                 // Validación para no permitir más de 5 productos en la receta
-                if (receta.productos.length >= 5) {
-                    alert('No puedes agregar más de 5 productos por receta.');
+                if (receta.productos.length >= 3) {
+                    alert('No puedes agregar más de 3 productos por receta.');
                     return;
                 }
 
@@ -398,7 +431,8 @@
                     recetas: recetas
                 };
                 console.log(JSON.stringify(payload, null, 2)); // Para ver el payload antes de enviar
-                $('#loadingModal').modal('show');
+                
+                loadingModal.show();
                 $.ajax({
                     url: '/prescriptionv1',
                     type: 'POST',
@@ -408,21 +442,71 @@
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
                     success: function(response) {
-                        //alert(response.message);
-                        $('#loadingModal').modal('hide');
-                        window.location.replace(
-                            "{{ route('prescription.list_prescription') }}");
+                        setTimeout(() => {
+                            loadingModal.hide();
+                            window.location.replace("{{ route('prescription.list_prescription') }}");
+                        }, 300); // espera 300ms
                     },
                     error: function(xhr) {
-                        $('#loadingModal').modal('hide');
-                        if (xhr.responseJSON && xhr.responseJSON.error) {
-                            alert('Error: ' + xhr.responseJSON.error);
-                        } else {
-                            alert('Error inesperado.');
-                        }
+                        setTimeout(() => {
+                            loadingModal.hide();
+                            if (xhr.responseJSON && xhr.responseJSON.error) {
+                                alert('Error: ' + xhr.responseJSON.error);
+                            } else {
+                                alert('Error inesperado.');
+                            }
+                        }, 300);
                     }
                 });
             });
+            
+            $('#factura').on('input', function() {
+            // 1. Limpiar el valor: solo números y máximo 15
+            let value = $(this).val().replace(/\D/g, '');
+            if (value.length > 15) value = value.substring(0, 15);
+
+            // 2. Segmentar sin rellenar ceros aún (para permitir escritura libre)
+            let est = value.substring(0, 3);
+            let pto = value.substring(3, 6);
+            let sec = value.substring(6);
+
+            // 3. Unir con guiones solo si hay contenido
+            let formatted = est;
+            if (pto.length > 0) formatted += '-' + pto;
+            if (sec.length > 0) formatted += '-' + sec;
+
+            $(this).val(formatted);
+        });
+
+        $('#factura').on('blur', function() {
+            // Al salir del campo, aplicamos el relleno de ceros (padding)
+            let parts = $(this).val().split('-');
+
+            if (parts.length === 3) {
+                let est = parts[0].padStart(3, '0');
+                let pto = parts[1].padStart(3, '0');
+                let sec = parts[2].padStart(9, '0');
+                $(this).val(`${est}-${pto}-${sec}`);
+            }
+        });
+
+        $('#almacenSelect').on('change', function() {
+            let almacenId = $(this).val();
+
+            $('#clienteSelect').empty().append('<option value="0">ALEATORIO</option>');
+
+            if (!almacenId) return;
+
+            $.get('/cliente/almacen/' + almacenId, function(data) {
+                data.forEach(c => {
+                    $('#clienteSelect').append(
+                        `<option value="${c.cliente_id}">
+                    ${c.cliente_nombre} ${c.cliente_apellido}
+                 </option>`
+                    );
+                });
+            });
+        });
 
         });
     </script>

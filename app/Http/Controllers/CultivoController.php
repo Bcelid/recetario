@@ -30,7 +30,7 @@ class CultivoController extends Controller
             $query->where('cultivo_estado', 0);
         }
 
-        $cultivos = $query->orderBy('cultivo_id', 'desc')->get();
+        $cultivos = $query->orderBy('cultivo_nombre', 'asc')->get();
 
         return response()->json($cultivos);
     }

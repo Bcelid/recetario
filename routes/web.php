@@ -22,6 +22,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PrescriptionController;
 use App\Http\Controllers\RecetaEmailController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ReporteRecetasController;
+use App\Models\RecetaLote;
 
 // Rutas públicas para login
 Route::get('/', [AuthController::class, 'showLoginForm'])->name('login');
@@ -34,6 +36,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard/data', [DashboardController::class, 'getData'])->name('dashboard.data');
     Route::get('/dashboard/charts-data', [DashboardController::class, 'getChartsData'])->name('dashboard.charts');
     Route::get('/dashboard/counts', [DashboardController::class, 'getCounts'])->name('dashboard.counts');
+
+    Route::get('/reportes/recetas', [ReporteRecetasController::class, 'index'])
+        ->name('reports.prescriptions.index');
+    Route::get('/reportes/recetas/pdf', [ReporteRecetasController::class, 'pdf'])
+        ->name('reports.prescriptions.pdf');
+    Route::get('/reportes/recetas/excel', [ReporteRecetasController::class, 'excel'])
+        ->name('reports.prescriptions.excel');
+    Route::get('/reportes/recetas/clientes/{almacenId}', [ReporteRecetasController::class, 'clientes'])
+        ->whereNumber('almacenId')
+        ->name('reports.prescriptions.clients');
 
 
 
@@ -121,6 +133,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/{id}', [ClienteController::class, 'update'])->name('update');       // Actualizar
         Route::delete('/{id}', [ClienteController::class, 'destroy'])->name('destroy');  // Activar/Inactivar
         Route::delete('/{id}/force', [ClienteController::class, 'forceDelete'])->name('forceDelete'); // Eliminación total (opcional)
+         Route::get('/almacen/{id}', [ClienteController::class, 'clientesPorAlmacen']);
         
     });
 
@@ -243,6 +256,45 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/receta/email/datos/{id}', [RecetaEmailController::class, 'getDatosEnvio'])->name('receta.email.datos');
     Route::post('/receta/enviar-correo', [RecetaEmailController::class, 'enviarCorreo'])->middleware('auth')->name('receta.correo.enviar');
+    
+    Route::get('/receta/lote/{id}/recetas', function ($id) {
+
+        $lote = RecetaLote::with('recetas')->findOrFail($id);
+
+        // 1) Verificamos si existe AL MENOS una receta con PDF
+        $tieneRecetasIndividuales = $lote->recetas->contains(function ($r) {
+            return !empty($r->receta_path);
+        });
+
+        // 2) SI TIENE PDFs individuales → listar todas las recetas
+        if ($tieneRecetasIndividuales) {
+
+            $recetas = $lote->recetas->map(function ($r) {
+
+                return [
+                    'receta_numero' => "Receta #{$r->receta_numero}",
+                    'fecha_emision' => $r->fecha_emision,
+                    'path' => $r->receta_path,
+                ];
+            });
+
+            return response()->json([
+                'recetas' => $recetas
+            ]);
+        }
+
+
+        // 3) SI NO HAY PDFs individuales → mostrar SOLO EL PDF DEL LOTE
+        $recetaUnica = [
+            'receta_numero' => "Lote #{$lote->receta_lote_id}",
+            'fecha_emision' => $lote->fecha_creacion,
+            'path' => $lote->receta_lote_path,
+        ];
+
+        return response()->json([
+            'recetas' => [$recetaUnica]
+        ]);
+    });
 
 
     

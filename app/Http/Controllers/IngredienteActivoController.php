@@ -30,7 +30,7 @@ class IngredienteActivoController extends Controller
             $query->where('ingrediente_activo_estado', 0);
         }
 
-        $ingredientes = $query->orderBy('ingrediente_activo_id', 'desc')->get();
+        $ingredientes = $query->orderBy('ingrediente_activo_nombre', 'asc')->get();
 
         return response()->json($ingredientes);
     }
@@ -41,7 +41,7 @@ class IngredienteActivoController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'ingrediente_activo_nombre' => 'required|string|max:255|unique:ingredienteactivo,ingrediente_activo_nombre',
+            'ingrediente_activo_nombre' => 'required|string|max:255',
             'ingrediente_activo_detalle' => 'nullable|string',
         ]);
 

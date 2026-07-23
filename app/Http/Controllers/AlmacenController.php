@@ -20,21 +20,23 @@ class AlmacenController extends Controller
      * Listar almacenes (opcionalmente filtrados por estado).
      */
     public function index(Request $request)
-    {
-        $estado = $request->get('estado', '1'); // 1: activos, 0: inactivos, 'all': todos
+{
+    $estado = $request->get('estado', '1'); // 1: activos, 0: inactivos, 'all': todos
 
-        $query = Almacen::with('propietario');
+    $query = Almacen::with('propietario');
 
-        if ($estado === '1') {
-            $query->where('almacen_estado', 1);
-        } elseif ($estado === '0') {
-            $query->where('almacen_estado', 0);
-        }
-
-        $almacenes = $query->orderByDesc('almacen_id')->get();
-
-        return response()->json($almacenes);
+    if ($estado === '1') {
+        $query->where('almacen_estado', 1);
+    } elseif ($estado === '0') {
+        $query->where('almacen_estado', 0);
     }
+
+    // Ordenar por nombre en orden alfabético (ascendente)
+    $almacenes = $query->orderBy('almacen_nombre', 'asc')->get();
+
+    return response()->json($almacenes);
+}
+
 
     /**
      * Crear nuevo almacén.

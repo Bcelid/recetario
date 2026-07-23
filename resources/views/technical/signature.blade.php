@@ -127,6 +127,12 @@
                     dataSrc: '',
                     data: function(d) {
                         d.estado = $('#filterEstado').val();
+                    },
+                    error: function(xhr, error, thrown) {
+                        console.error('XHR:', xhr);
+                        console.error('Error:', error);
+                        console.error('Thrown:', thrown);
+                        alert('Ocurrió un error al cargar los datos. Revisa la consola.');
                     }
                 },
                 columns: [{
@@ -212,7 +218,7 @@
                     $('#fecha_expiracion').val(data.fecha_expiracion);
 
                     loadTecnicos();
-                    setTimeout(() => $('#tecnico_id').val(data.tecnico_id), 200);
+                    setTimeout(() => $('#tecnico_id').val(data.tecnico_id), 400);
 
                     firmaModal.show();
                 });
@@ -259,11 +265,17 @@
                         $btn.html(originalContent).prop('disabled', false);
 
                         if (xhr.status === 422) {
-                            let errors = xhr.responseJSON.errors;
-                            for (let field in errors) {
-                                let input = $(`[name="${field}"]`);
-                                input.addClass('is-invalid');
-                                input.next('.invalid-feedback').text(errors[field][0]);
+                            if (xhr.responseJSON.errors) {
+                                // Errores de validación de Laravel
+                                let errors = xhr.responseJSON.errors;
+                                for (let field in errors) {
+                                    let input = $(`[name="${field}"]`);
+                                    input.addClass('is-invalid');
+                                    input.next('.invalid-feedback').text(errors[field][0]);
+                                }
+                            } else if (xhr.responseJSON.message) {
+                                // Mensaje personalizado que tú mandas
+                                alert(xhr.responseJSON.message);
                             }
                         } else {
                             alert('Error en el servidor');

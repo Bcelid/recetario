@@ -13,6 +13,7 @@ class RecetaLoteEnvio extends Model
         'receta_lote_id',
         'almacen_id',
         'correo',
+        'cc',
         'url_documento',
         'mensaje',
         'numero_envio',

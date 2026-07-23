@@ -111,16 +111,27 @@
                         orderable: false,
                         searchable: false,
                         render: function(data, type, row) {
-                            const btnEdit = `<button class="btn btn-primary btn-sm btn-edit" title="Editar" data-id="${row.ingrediente_activo_id}">
-                        <i class="fa-solid fa-pen-to-square"></i>
-                    </button>`;
+                        const estado = Number(row.ingrediente_activo_estado); // Convertir a número para comparación segura
+                    
+                        const btnEdit = `
+                            <button class="btn btn-primary btn-sm btn-edit" title="Editar" data-id="${row.ingrediente_activo_id}">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                        `;
+                    
+                        const btnToggleEstado = `
+                            <button class="btn btn-sm ${estado === 1 ? 'btn-danger' : 'btn-success'} btn-toggle-estado" 
+                                title="${estado === 1 ? 'Desactivar' : 'Activar'}" 
+                                data-id="${row.ingrediente_activo_id}">
+                                ${estado === 1 
+                                    ? '<i class="fa-solid fa-xmark-circle"></i>' 
+                                    : '<i class="fa-solid fa-check-circle"></i>'}
+                            </button>
+                        `;
+                    
+                        return `<div class="d-flex gap-1">${btnEdit}${btnToggleEstado}</div>`;
+                    }
 
-                            const btnToggleEstado = `<button class="btn btn-sm ${row.ingrediente_activo_estado ? 'btn-danger' : 'btn-success'} btn-toggle-estado" title="${row.ingrediente_activo_estado ? 'Desactivar' : 'Activar'}" data-id="${row.ingrediente_activo_id}">
-                        ${row.ingrediente_activo_estado ? '<i class="fa-solid fa-xmark-circle"></i>' : '<i class="fa-solid fa-check-circle"></i>'}
-                    </button>`;
-
-                            return `<div class="d-flex gap-1">${btnEdit}${btnToggleEstado}</div>`;
-                        }
                     }
                 ]
             });

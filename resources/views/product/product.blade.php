@@ -169,6 +169,9 @@
     <script>
         $(document).ready(function() {
             $('#loadingModal').modal('show');
+            setTimeout(() => {
+                $('#loadingModal').modal('hide');
+            }, 2500);
             const routeToIndex = "{{ route('product.index') }}";
 
             // Variables globales
@@ -210,7 +213,7 @@
                         <select class="form-select select-ingrediente" style="width: 100%"></select>
                     </td>
                     <td>
-    <input type="number" class="form-control" placeholder="Composición" step="0.01" />
+    <input type="number" class="form-control" placeholder="Composición" step="0.0001" />
 </td>
 
                     <td>
@@ -239,7 +242,9 @@
     <td class="dosis-col">
         <select class="form-select select-unidad-dosificacion" style="width: 100%"></select>
     </td>
-    <td><input class="form-control" placeholder="Aplicación" /></td>
+    <td>
+    <textarea class="form-control" placeholder="Aplicación" rows="2"></textarea>
+</td>
     <td><button type="button" class="btn btn-danger btn-sm btn-remove">Eliminar</button></td>
 </tr>
 `;
@@ -252,7 +257,9 @@
                     <td><select class="form-select select-subespecie" style="width: 100%"></select></td>
                     <td class="dosis-col d-none"></td>
                     <td class="dosis-col d-none"></td>
-                    <td><input class="form-control" placeholder="Aplicación" /></td>
+                    <td>
+    <textarea class="form-control" placeholder="Aplicación" rows="2"></textarea>
+</td>
                     <td><button type="button" class="btn btn-danger btn-sm btn-remove">Eliminar</button></td>
                 </tr>
             `;
@@ -324,80 +331,117 @@
 
             // Enviar formulario con ingredientes y dosificación
             $('#formProducto').on('submit', function(e) {
-                e.preventDefault();
-                $('#loadingModal').modal('show');
+    e.preventDefault();
+    
 
-                // Armar el objeto de datos principal
-                const data = {
-                    tipo_producto: $('#tipoProducto').val(),
-                    nombre_producto: $('input[name="nombre_producto"]').val(),
-                    concentracion: $('input[name="concentracion"]').val(),
-                    presentacion: $('input[name="presentacion"]').val(),
-                    unidad_medida_id: $('#selectUnidad').val(),
-                    formulacion_id: $('#selectFormulacion').val(),
-                    cantidad_envase: $('input[name="cantidad_envase"]').val(),
-                    diagnostico: $('textarea[name="diagnostico"]').val(),
-                    ingredientes: [],
-                    dosificaciones: []
-                };
+    const tipo = $('#tipoProducto').val();
 
-                // Ingredientes activos
-                $('#tablaIngredientes tbody tr').each(function() {
-                    const ingrediente_id = $(this).find('.select-ingrediente').val();
-                    const porcentaje = $(this).find('input[type="number"]').val();
-                    const unidad_id = $(this).find('.select-unidad').val();
+    const data = {
+        tipo_producto: tipo,
+        nombre_producto: $('input[name="nombre_producto"]').val(),
+        concentracion: $('input[name="concentracion"]').val(),
+        presentacion: $('input[name="presentacion"]').val(),
+        unidad_medida_id: $('#selectUnidad').val(),
+        formulacion_id: $('#selectFormulacion').val(),
+        cantidad_envase: $('input[name="cantidad_envase"]').val(),
+        diagnostico: $('textarea[name="diagnostico"]').val(),
+        ingredientes: [],
+        dosificaciones: []
+    };
 
-                    if (ingrediente_id && porcentaje && unidad_id) {
-                        data.ingredientes.push({
-                            ingrediente_id: ingrediente_id,
-                            porcentaje: porcentaje,
-                            unidad_id: unidad_id
-                        });
-                    }
-                });
+    // Validar ingredientes activos
+    let ingredienteValido = true;
+    $('#tablaIngredientes tbody tr').each(function(index) {
+        const ingrediente_id = $(this).find('.select-ingrediente').val();
+        const porcentaje = $(this).find('input[type="number"]').val();
+        const unidad_id = $(this).find('.select-unidad').val();
 
-                // Dosificaciones
-                $('#tablaDosificacion tbody tr').each(function() {
-                    const tipo = $('#tipoProducto').val();
-                    let item = {
-                        aplicacion: $(this).find('input[placeholder="Aplicación"]').val()
-                    };
+        // Validar que todos los campos estén llenos
+        if (!ingrediente_id || !porcentaje || !unidad_id) {
+            ingredienteValido = false;
+            return false; // Romper el each
+        }
 
-                    if (tipo === '0') {
-                        // Agrícola
-                        item.cultivo_id = $(this).find('.select-cultivo').val();
-                        item.maleza_id = $(this).find('.select-maleza').val();
-                        item.dosis = $(this).find('input[placeholder="Dosis"]').val();
-                        item.unidad_dosificacion_id = $(this).find('select').eq(2)
-                            .val(); // 3er select
-                    } else {
-                        // Veterinario
-                        item.subespecie_id = $(this).find('.select-subespecie').val();
-                    }
+        data.ingredientes.push({
+            ingrediente_id: ingrediente_id,
+            porcentaje: porcentaje,
+            unidad_id: unidad_id
+        });
+    });
 
-                    data.dosificaciones.push(item);
-                });
+    if (!ingredienteValido) {
+        $('#loadingModal').modal('hide');
+        alert('Todos los campos de los ingredientes activos deben estar completos.');
+        return;
+    }
 
-                // Enviar al servidor
-                $.ajax({
-                    url: '/producto', // o la ruta correcta para crear
-                    method: 'POST',
-                    data: JSON.stringify(data),
-                    contentType: 'application/json',
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function(response) {
-                        //alert('Producto registrado correctamente');
-                        $('#loadingModal').modal('hide');
-                        window.location.href = routeToIndex;
-                    },
-                    error: function(xhr) {
-                        console.error(xhr.responseText);
-                        alert('Error al registrar el producto');
-                    }
-                });
-            });
+    // Validar dosificaciones
+    let dosificacionValida = true;
+    $('#tablaDosificacion tbody tr').each(function(index) {
+        let item = {
+            aplicacion: $(this).find('textarea[placeholder="Aplicación"]').val()
+        };
+
+        if (tipo === '0') {
+            // Agrícola
+            item.cultivo_id = $(this).find('.select-cultivo').val();
+            item.maleza_id = $(this).find('.select-maleza').val();
+            item.dosis = $(this).find('input[placeholder="Dosis"]').val();
+            item.unidad_dosificacion_id = $(this).find('select').eq(2).val();
+
+            if (!item.aplicacion || !item.cultivo_id || !item.maleza_id || !item.dosis || !item.unidad_dosificacion_id) {
+                dosificacionValida = false;
+                return false; // Romper el each
+            }
+        } else {
+            // Veterinario
+            item.subespecie_id = $(this).find('.select-subespecie').val();
+
+            if (!item.aplicacion || !item.subespecie_id) {
+                dosificacionValida = false;
+                return false; // Romper el each
+            }
+        }
+
+        data.dosificaciones.push(item);
+    });
+
+    if (!dosificacionValida) {
+        $('#loadingModal').modal('hide');
+        alert('Todos los campos de las dosificaciones deben estar completos.');
+        return;
+    }
+
+    // Validación: al menos un ingrediente o una dosificación
+    if (data.ingredientes.length === 0 && data.dosificaciones.length === 0) {
+        $('#loadingModal').modal('hide');
+        alert('Debe agregar al menos un ingrediente activo o una dosificación.');
+        return;
+    }
+    $('#loadingModal').modal('show');
+    setTimeout(() => {
+        $('#loadingModal').modal('hide');
+    }, 2500);
+    // Enviar al servidor
+    $.ajax({
+        url: '/producto',
+        method: 'POST',
+        data: JSON.stringify(data),
+        contentType: 'application/json',
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response) {
+            $('#loadingModal').modal('hide');
+            window.location.href = routeToIndex;
+        },
+        error: function(xhr) {
+            console.error(xhr.responseText);
+            alert('Error al registrar el producto');
+        }
+    });
+});
+
 
         });
     </script>
